@@ -1,13 +1,14 @@
 import { useCallback } from 'react';
 import { Handle, Position } from '@xyflow/react';
+import CustomHandle from '../../CustomHandle';
 
-function NumericNode({ id, data }) {
+function NumericNode({ data }) {
 
   return (
     <div className="numeric-node">
-      <Handle type="target" position={Position.Left} />
+      <CustomHandle type="target" position={Position.Left} connectionCount={1} />
       <div>{data.value}</div>
-      <Handle type="source" position={Position.Right} />
+      <CustomHandle type="source" position={Position.Right} connectionCount={1} />
     </div>
   );
 }

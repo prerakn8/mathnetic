@@ -8,12 +8,12 @@ function LaTeXNode({ data }) {
 
   return (
     <div className="latex-node">
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Left} />
       <div>
         <label htmlFor="latex">Enter Latex:</label>
         <input id="latex" name="latex" onChange={onChange} className="nodrag" />
       </div>
-      <Handle type="source" position={Position.Bottom} id="a" />
+      <Handle type="source" position={Position.Right} id="a" />
     </div>
   );
 }
