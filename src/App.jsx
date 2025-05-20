@@ -1,5 +1,5 @@
 // Third-Party Imports
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import {
   ReactFlow,
   useNodesState,
@@ -13,6 +13,9 @@ import {
   SelectionMode,
   MiniMap,
   Panel,
+  getIncomers,
+  getOutgoers,
+  getConnectedEdges,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -20,14 +23,15 @@ import '@xyflow/react/dist/style.css';
 
 // Sidebar
 import Sidebar from './components/SideBar';
-// import { DnDProvider, useDnD } from './components/DnDContext';
+
+// Contexts and Providers
 import { TypeProvider, useType } from './components/context/TypeContext';
+import { LatexEqProvider, useLatexEq } from './components/context/LatexEqContext';
 
 // Node Types
 import NumericNode from './components/node_types/NumericNode';
 import LaTeXNode from './components/node_types/LaTeXNode';
 import OutputNode from './components/node_types/OutputNode';
-import { LatexEqProvider, useLatexEq } from './components/context/LatexEqContext';
 
 const nodeTypes = {
   numeric: NumericNode,
@@ -36,8 +40,8 @@ const nodeTypes = {
 }
 
 const initialNodes = [
-  { id: '1', position: { x: 0, y: 0 }, data: { value: '1' }, type: 'numeric'},
-  { id: '2', position: { x: 0, y: 100 }, data: { value: '2' }, type: 'numeric' },
+  { id: '1', position: { x: 0, y: 0 }, data: { value: '1', label: '1' }, type: 'numeric'},
+  { id: '2', position: { x: 0, y: 100 }, data: { value: '2', label: '2' }, type: 'numeric' },
   { id: '3', position: { x: 0, y: 200 }, data: { value: '+' }, type: 'latex' }
 ];
 const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
@@ -53,10 +57,52 @@ const Flow = () => {
   // Initialize Nodes and Edges
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const reactFlowInstance = useReactFlow();
+  
   const onConnect = useCallback(
-     (params) => setEdges((eds) => addEdge(params, eds)),
-     [setEdges],
+    (params) => {
+      setEdges((eds) => addEdge(params, eds));
+      setNodes((nds) => 
+        nds.map((node) => {
+          if (node.id === params.target) {
+            const { source } = params;
+            const sourceNode = reactFlowInstance.getNode(source);
+            return { ...node, data: { ...node.data, label: `${sourceNode.data.label}${node.data.value}` } };
+          }
+          return node;
+        }),
+      );
+    },
+  [setEdges]);
+
+  const onNodesDelete = useCallback(
+    (deleted) => {
+      setEdges(
+        deleted.reduce((acc, node) => {
+          const incomers = getIncomers(node, nodes, edges);
+          const outgoers = getOutgoers(node, nodes, edges);
+          const connectedEdges = getConnectedEdges([node], edges);
+
+          const remainingEdges = acc.filter(
+            (edge) => !connectedEdges.includes(edge),
+          );
+
+          const createdEdges = incomers.flatMap(({ id: source }) => 
+            outgoers.map(({ id: target }) => ({
+              id: `${source}->${target}`,
+              source,
+              target,
+            })),
+          );
+
+          return [...remainingEdges, ...createdEdges];
+        }, edges),
+      );
+    },
+    [nodes, edges],
   );
+
+
   const defaultEdgeOptions = { animated: true };
 
   // Node Tracking Variables
@@ -142,6 +188,7 @@ const Flow = () => {
           )
         ) {
           nextEdges.push(closeEdge);
+
         }
  
         return nextEdges;
@@ -164,7 +211,11 @@ const Flow = () => {
     (event) => {
       event.preventDefault();
 
-      if (!type || !latexEq) {
+      if (!type) {
+        return;
+      }
+
+      if (!latexEq && type !== 'output') {
         return;
       }
 
@@ -177,7 +228,7 @@ const Flow = () => {
         id: getId(),
         type,
         position,
-        data: { value: `${latexEq}` },
+        data: { value: `${latexEq}`, label: `${latexEq}` },
       };
 
       setNodes((nds) => nds.concat(newNode));
@@ -200,6 +251,7 @@ const Flow = () => {
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
+          onNodesDelete={onNodesDelete}
           onEdgesChange={onEdgesChange}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}

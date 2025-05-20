@@ -1,6 +1,7 @@
 @import './components/node_types/NumericNode/index.css';
 @import './components/node_types/LaTeXNode/index.css';
-@import './components/DnDContext/index.css';
+@import './components/node_types/OutputNode/index.css';
+@import './components/context/index.css';
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;

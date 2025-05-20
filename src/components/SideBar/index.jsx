@@ -50,6 +50,9 @@ export default () => {
       <div className="dndnode" onDragStart={(event) => onDragStart(event, 'latex', '+')} draggable>
         LaTeX Node 
       </div>
+      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'output', '')} draggable> 
+        Output Node
+      </div>
     </aside>
   );
 };
