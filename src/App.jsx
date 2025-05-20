@@ -9,16 +9,20 @@ import {
   SelectionMode,
   MiniMap,
   Panel,
-  ReactFlowProvider
+  ReactFlowProvider,
+  useReactFlow,
+  useStoreApi
 } from '@xyflow/react';
- 
+
 import '@xyflow/react/dist/style.css';
 import NumericNode from './components/node_types/NumericNode';
 import LaTeXNode from './components/node_types/LaTeXNode';
+import OutputNode from './components/node_types/OutputNode';
 
 const nodeTypes = {
   numeric: NumericNode,
-  latex: LaTeXNode
+  latex: LaTeXNode,
+  output: OutputNode,
 }
 
 const initialNodes = [
@@ -27,38 +31,137 @@ const initialNodes = [
   { id: '3', position: { x: 0, y: 200 }, data: { value: '+' }, type: 'latex' }
 ];
 const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
+
+const MIN_DISTANCE = 150;
  
-export default function App() {
+const Flow = () => {
+  const store = useStoreApi();
+
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const { getInternalNode } = useReactFlow();
  
   const onConnect = useCallback(
-    (connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges],
+     (params) => setEdges((eds) => addEdge(params, eds)),
+     [setEdges],
+  );
+
+  const getClosestEdge = useCallback((node) => {
+    const { nodeLookup } = store.getState();
+    const internalNode = getInternalNode(node.id);
+
+    const closestNode = Array.from(nodeLookup.values()).reduce(
+      (res, n) => {
+        if (n.id !== internalNode.id) {
+          const dx = n.internals.positionAbsolute.x - internalNode.internals.positionAbsolute.x;
+          const dy = n.internals.positionAbsolute.y - internalNode.internals.positionAbsolute.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+
+          if (d < res.distance && d < MIN_DISTANCE) {
+            res.distance = d;
+            res.node = n;
+          }
+        }
+        return res;
+      },
+      {
+        distance: Number.MAX_VALUE,
+        node: null,
+      },
+    );
+
+    if (!closestNode.node) {
+      return null;
+    }
+
+    const closeNodeIsSource = closestNode.node.internals.positionAbsolute.x < internalNode.internals.positionAbsolute.x;
+
+    return {
+      id: closeNodeIsSource 
+      ? `${closestNode.node.id}-${node.id}`
+      : `${node.id}-${closestNode.node.id}`,
+      source: closeNodeIsSource ? closestNode.node.id : node.id,
+      target: closeNodeIsSource ? node.id : closestNode.node.id,
+    };
+  }, []);
+ 
+  const onNodeDrag = useCallback(
+    (_, node) => {
+      const closeEdge = getClosestEdge(node);
+ 
+      setEdges((es) => {
+        const nextEdges = es.filter((e) => e.className !== 'temp');
+ 
+        if (
+          closeEdge &&
+          !nextEdges.find(
+            (ne) =>
+              ne.source === closeEdge.source && ne.target === closeEdge.target,
+          )
+        ) {
+          closeEdge.className = 'temp';
+          nextEdges.push(closeEdge);
+        }
+ 
+        return nextEdges;
+      });
+    },
+    [getClosestEdge, setEdges],
   );
  
+  const onNodeDragStop = useCallback(
+    (_, node) => {
+      const closeEdge = getClosestEdge(node);
+ 
+      setEdges((es) => {
+        const nextEdges = es.filter((e) => e.className !== 'temp');
+ 
+        if (
+          closeEdge &&
+          !nextEdges.find(
+            (ne) =>
+              ne.source === closeEdge.source && ne.target === closeEdge.target,
+          )
+        ) {
+          nextEdges.push(closeEdge);
+        }
+ 
+        return nextEdges;
+      });
+    },
+    [getClosestEdge],
+  );
+
   const defaultEdgeOptions = { animated: true };
 
   return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onNodeDrag={onNodeDrag}
+      onNodeDragStop={onNodeDragStop}
+      onConnect={onConnect}
+      defaultEdgeOptions={defaultEdgeOptions}
+      SelectionMode={SelectionMode.Partial}
+      nodeTypes={nodeTypes}
+      fitView
+    >
+      <Panel position="top-center">Drag Blocks to Start Making Math!</Panel>
+      <MiniMap ariaLabel="Mathnetic Mini Map" pannable zoomable/>
+      <Controls />
+      <Background variant="dots" gap={12} size={1} />
+    </ReactFlow>
+  );
+};
+
+export default function App() {
+  return (
     <div style={{ width: '100vw', height: '100vh' }}>
       <ReactFlowProvider>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          defaultEdgeOptions={defaultEdgeOptions}
-          SelectionMode={SelectionMode.Partial}
-          nodeTypes={nodeTypes}
-          fitView
-        >
-          <Panel position="top-center">Drag Blocks to Start Making Math!</Panel>
-          <MiniMap ariaLabel="Mathnetic Mini Map" pannable zoomable/>
-          <Controls />
-          <Background variant="dots" gap={12} size={1} />
-        </ReactFlow>
-      </ReactFlowProvider>
+        <Flow />
+      </ReactFlowProvider >
     </div>
   );
-}
+};
