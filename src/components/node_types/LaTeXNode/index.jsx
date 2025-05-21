@@ -3,7 +3,7 @@ import { Handle, Position } from '@xyflow/react';
   
 function LaTeXNode({ data }) {
   const onChange = useCallback((event) => {
-    console.log(event.target.value);
+    data.value = event.target.value;
   }, []);
 
   return (

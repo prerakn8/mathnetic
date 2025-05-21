@@ -4,6 +4,7 @@ import {
   ReactFlow,
   useNodesState,
   useEdgesState,
+  applyNodeChanges,
   addEdge,
   Controls, 
   Background,
@@ -58,20 +59,10 @@ const Flow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const reactFlowInstance = useReactFlow();
-  
+
   const onConnect = useCallback(
     (params) => {
       setEdges((eds) => addEdge(params, eds));
-      setNodes((nds) => 
-        nds.map((node) => {
-          if (node.id === params.target) {
-            const { source } = params;
-            const sourceNode = reactFlowInstance.getNode(source);
-            return { ...node, data: { ...node.data, label: `${sourceNode.data.label}${node.data.value}` } };
-          }
-          return node;
-        }),
-      );
     },
   [setEdges]);
 
@@ -111,6 +102,7 @@ const Flow = () => {
  
   // Proximity Connect
   const getClosestEdge = useCallback((node) => {
+
     const { nodeLookup } = store.getState();
     const internalNode = getInternalNode(node.id);
 
@@ -193,6 +185,7 @@ const Flow = () => {
  
         return nextEdges;
       });
+
     },
     [getClosestEdge],
   );
