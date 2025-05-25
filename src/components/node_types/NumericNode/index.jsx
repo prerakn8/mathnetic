@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Position, useNodeConnections, useReactFlow, useNodesData } from '@xyflow/react';
+import { Position, useStoreApi, useNodeConnections, useReactFlow, useNodesData } from '@xyflow/react';
 import CustomHandle from '../../CustomHandle';
 
 function NumericNode(props) {

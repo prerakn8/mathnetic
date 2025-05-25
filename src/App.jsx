@@ -1,3 +1,5 @@
+// "You are not expected to understand this"
+
 // Third-Party Imports
 import React, { useRef, useCallback, useState } from 'react';
 import {
@@ -45,7 +47,7 @@ let id = 0;
 const getId = () => `dndnode_${id++}`;
 
 // Proximity Connection Variables
-const MIN_DISTANCE = 150;
+const MIN_DISTANCE = 250;
  
 const Flow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -133,6 +135,23 @@ const Flow = () => {
 
     let newEdge = null;
 
+    const isSourceHandleInUse = (nodeId, handleId, edges) => {
+      console.log(edges);
+      const result = edges.some(
+        (edge) => edge.source === nodeId && edge.sourceHandle === handleId
+      ); 
+      console.log(result);
+      return result;
+    };
+
+    const isTargetHandleInUse = (nodeId, handleId, edges) => {
+      return edges.some(
+        (edge) => edge.target === nodeId && edge.targetHandle === handleId
+      );
+    };
+
+    let isInvalidConnection = null;
+
     if (!lessHorizontalDistance) {
       const closeNodeIsSource = xDistance < 0;
 
@@ -145,6 +164,15 @@ const Flow = () => {
         targetHandle: closeNodeIsSource ? `${node.id}_target1` : `${closestNode.node.id}_target1`,
         target: closeNodeIsSource ? node.id : closestNode.node.id,
       }
+
+      if (closeNodeIsSource)
+      {
+        isInvalidConnection = isSourceHandleInUse(closestNode.node.id, newEdge.sourceHandle, edges);
+      }
+      else {
+        isInvalidConnection = isTargetHandleInUse(closestNode.node.id, newEdge.targetHandle, edges);
+      }
+
     }
     else {
       const closeNodeIsSource = yDistance < 0;
@@ -158,32 +186,23 @@ const Flow = () => {
         targetHandle: closeNodeIsSource ? `${node.id}_target2` : `${closestNode.node.id}_target2`,
         target: closeNodeIsSource ? node.id : closestNode.node.id,
       }
+
+      if (closeNodeIsSource)
+      {
+        isInvalidConnection = isSourceHandleInUse(closestNode.node.id, newEdge.sourceHandle, edges);
+      }
+      else {
+        isInvalidConnection = isTargetHandleInUse(closestNode.node.id, newEdge.targetHandle, edges);
+      }
     }
 
-    const sourceNode = reactFlowInstance.getNode(newEdge.source);
-    const targetNode = reactFlowInstance.getNode(newEdge.target);
-    
-    const connectedSourceEdges = getConnectedEdges([sourceNode], edges);
-    const connectedTargetEdges = getConnectedEdges([targetNode], edges);
-
-    const invalidSourceConnection = connectedSourceEdges.some(
-      edge => {
-        return (edge.sourceHandle === newEdge.sourceHandle);
-      }
-    );
-    const invalidTargetConnection = connectedTargetEdges.some(
-      edge => {
-        return (edge.targetHandle === newEdge.targetHandle);
-      }
-    );
-
-    if (invalidSourceConnection || invalidTargetConnection)
+    if (isInvalidConnection)
     {
       return null;
     }
 
     return newEdge;
-  }, []);
+  }, [edges.filter((e) => e.className !== 'temp').length]);
  
   const onNodeDrag = useCallback(
     (_, node) => {
@@ -194,13 +213,13 @@ const Flow = () => {
  
         if (closeEdge && !nextEdges.find(
             (ne) =>
-              (ne.source === closeEdge.source && ne.target === closeEdge.target) || (ne.source === closeEdge.target && ne.target === closeEdge.source),
-          )
+              (ne.source === closeEdge.source && ne.target === closeEdge.target) || (ne.source === closeEdge.target && ne.target === closeEdge.source)
+          ) 
         ) {
           closeEdge.className = 'temp';
           nextEdges.push(closeEdge);
         }
-        
+
         return nextEdges;
       });
     },
@@ -222,7 +241,6 @@ const Flow = () => {
           )
         ) {
           nextEdges.push(closeEdge);
-
         }
  
         return nextEdges;
