@@ -1,25 +1,14 @@
 import { Handle, useNodeConnections } from '@xyflow/react';
 
-function CustomHandle({ id, label, onConnect }) {
-    const connections = useNodeConnections({
-        handleType: 'target',
-        handleId: id,
-    });
-
-    const nodeData = useNodesData(connections?.[0].source);
-
-    useEffect(() => {
-        onConnect(nodeData?.data ? nodeData.data.label : 0);
-    }, [nodeData]);
+function CustomHandle(props) {
 
     return (
         <div>
             <Handle
-                type="target"
-                position={Position.Left}
-                id={id}
+                {...props}
                 className="handle"
-                isConnectable={connections.length < props.connectionCount}
+                // isConnectable={connections.length < props.connectionCount}
+                //isValidConnection={isValidConnection}
             />
         </div>
     );

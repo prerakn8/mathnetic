@@ -4,7 +4,6 @@ import {
   ReactFlow,
   useNodesState,
   useEdgesState,
-  applyNodeChanges,
   addEdge,
   Controls, 
   Background,
@@ -17,19 +16,16 @@ import {
   getIncomers,
   getOutgoers,
   getConnectedEdges,
+  useNodeConnections,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 // Custom Imports
-
-// Sidebar
 import Sidebar from './components/SideBar';
 
-// Contexts and Providers
 import { TypeProvider, useType } from './components/context/TypeContext';
 import { LatexEqProvider, useLatexEq } from './components/context/LatexEqContext';
 
-// Node Types
 import NumericNode from './components/node_types/NumericNode';
 import LaTeXNode from './components/node_types/LaTeXNode';
 import OutputNode from './components/node_types/OutputNode';
@@ -40,36 +36,34 @@ const nodeTypes = {
   output: OutputNode,
 }
 
-const initialNodes = [
-  { id: '1', position: { x: 0, y: 0 }, data: { value: '1', label: '1' }, type: 'numeric'},
-  { id: '2', position: { x: 0, y: 100 }, data: { value: '2', label: '2' }, type: 'numeric' },
-  { id: '3', position: { x: 0, y: 200 }, data: { value: '+' }, type: 'latex' }
-];
-const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
+// Track Nodes and Edges in Workspace (3D Blocks)
+const workspaceNodes = [];
+const workspaceEdges = [];
 
-// Assign Unique ID to each node that was DnD'd
+// Assign Unique ID to Every Node
 let id = 0;
 const getId = () => `dndnode_${id++}`;
 
-// Global Variables for Proximity Connect
+// Proximity Connection Variables
 const MIN_DISTANCE = 150;
  
 const Flow = () => {
-  // Initialize Nodes and Edges
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  
   const reactFlowInstance = useReactFlow();
 
-  const onConnect = useCallback(
-    (params) => {
+  const onConnect = useCallback((params) => 
+    {
       setEdges((eds) => addEdge(params, eds));
     },
-  [setEdges]);
+    [setEdges]
+  );
 
-  const onNodesDelete = useCallback(
-    (deleted) => {
-      setEdges(
-        deleted.reduce((acc, node) => {
+  const onNodesDelete = useCallback((deleted) => 
+    {
+      setEdges(deleted.reduce((acc, node) => 
+        {
           const incomers = getIncomers(node, nodes, edges);
           const outgoers = getOutgoers(node, nodes, edges);
           const connectedEdges = getConnectedEdges([node], edges);
@@ -82,7 +76,9 @@ const Flow = () => {
             outgoers.map(({ id: target }) => ({
               id: `${source}->${target}`,
               source,
+              sourceHandle: connectedEdges[0].sourceHandle,        
               target,
+              targetHandle: connectedEdges[0].targetHandle,
             })),
           );
 
@@ -92,7 +88,6 @@ const Flow = () => {
     },
     [nodes, edges],
   );
-
 
   const defaultEdgeOptions = { animated: true };
 
@@ -126,19 +121,68 @@ const Flow = () => {
       },
     );
 
+
     if (!closestNode.node) {
       return null;
     }
 
-    const closeNodeIsSource = closestNode.node.internals.positionAbsolute.x < internalNode.internals.positionAbsolute.x;
+    const xDistance = closestNode.node.internals.positionAbsolute.x - internalNode.internals.positionAbsolute.x;
+    const yDistance = closestNode.node.internals.positionAbsolute.y - internalNode.internals.positionAbsolute.y;
+    
+    const lessHorizontalDistance = Math.abs(xDistance) < Math.abs(yDistance);
 
-    return {
-      id: closeNodeIsSource 
-      ? `${closestNode.node.id}-${node.id}`
-      : `${node.id}-${closestNode.node.id}`,
-      source: closeNodeIsSource ? closestNode.node.id : node.id,
-      target: closeNodeIsSource ? node.id : closestNode.node.id,
-    };
+    let newEdge = null;
+
+    if (!lessHorizontalDistance) {
+      const closeNodeIsSource = xDistance < 0;
+
+      newEdge = {
+        id: closeNodeIsSource 
+        ? `${closestNode.node.id}-${node.id}`
+        : `${node.id}-${closestNode.node.id}`,
+        source: closeNodeIsSource ? closestNode.node.id : node.id,
+        sourceHandle: closeNodeIsSource ? `${closestNode.node.id}_source1` : `${node.id}_source1`,
+        targetHandle: closeNodeIsSource ? `${node.id}_target1` : `${closestNode.node.id}_target1`,
+        target: closeNodeIsSource ? node.id : closestNode.node.id,
+      }
+    }
+    else {
+      const closeNodeIsSource = yDistance < 0;
+
+      newEdge = {
+        id: closeNodeIsSource 
+        ? `${closestNode.node.id}-${node.id}`
+        : `${node.id}-${closestNode.node.id}`,
+        source: closeNodeIsSource ? closestNode.node.id : node.id,
+        sourceHandle: closeNodeIsSource ? `${closestNode.node.id}_source2` : `${node.id}_source2`,
+        targetHandle: closeNodeIsSource ? `${node.id}_target2` : `${closestNode.node.id}_target2`,
+        target: closeNodeIsSource ? node.id : closestNode.node.id,
+      }
+    }
+
+    const sourceNode = reactFlowInstance.getNode(newEdge.source);
+    const targetNode = reactFlowInstance.getNode(newEdge.target);
+    
+    const connectedSourceEdges = getConnectedEdges([sourceNode], edges);
+    const connectedTargetEdges = getConnectedEdges([targetNode], edges);
+
+    const invalidSourceConnection = connectedSourceEdges.some(
+      edge => {
+        return (edge.sourceHandle === newEdge.sourceHandle);
+      }
+    );
+    const invalidTargetConnection = connectedTargetEdges.some(
+      edge => {
+        return (edge.targetHandle === newEdge.targetHandle);
+      }
+    );
+
+    if (invalidSourceConnection || invalidTargetConnection)
+    {
+      return null;
+    }
+
+    return newEdge;
   }, []);
  
   const onNodeDrag = useCallback(
@@ -148,17 +192,15 @@ const Flow = () => {
       setEdges((es) => {
         const nextEdges = es.filter((e) => e.className !== 'temp');
  
-        if (
-          closeEdge &&
-          !nextEdges.find(
+        if (closeEdge && !nextEdges.find(
             (ne) =>
-              ne.source === closeEdge.source && ne.target === closeEdge.target,
+              (ne.source === closeEdge.source && ne.target === closeEdge.target) || (ne.source === closeEdge.target && ne.target === closeEdge.source),
           )
         ) {
           closeEdge.className = 'temp';
           nextEdges.push(closeEdge);
         }
- 
+        
         return nextEdges;
       });
     },
@@ -176,7 +218,7 @@ const Flow = () => {
           closeEdge &&
           !nextEdges.find(
             (ne) =>
-              ne.source === closeEdge.source && ne.target === closeEdge.target,
+              (ne.source === closeEdge.source && ne.target === closeEdge.target) || (ne.source === closeEdge.target && ne.target === closeEdge.source),
           )
         ) {
           nextEdges.push(closeEdge);
@@ -223,6 +265,8 @@ const Flow = () => {
         position,
         data: { value: `${latexEq}`, label: `${latexEq}` },
       };
+
+      workspaceNodes.push(newNode);
 
       setNodes((nds) => nds.concat(newNode));
     },

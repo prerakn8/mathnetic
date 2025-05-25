@@ -1,5 +1,6 @@
-import { Handle, Position, useReactFlow, getIncomers, useNodeId } from '@xyflow/react';
+import { Position, useReactFlow, getIncomers, useNodeId } from '@xyflow/react';
 import { useState } from 'react';
+import CustomHandle from '../../CustomHandle';
 
 function getSequentialNodes(nodes, edges, startNodeId) {
   const sequence = [];
@@ -8,7 +9,7 @@ function getSequentialNodes(nodes, edges, startNodeId) {
   while (true) {
     sequence.push(currentNodeId);
     const currentNode = nodes.find((node) => node.id === currentNodeId);
-    const incomers = getIncomers(currentNode, nodes, edges);
+    const incomers = getIncomers(curren4tNode, nodes, edges);
     
     if (incomers.length === 0) {
       break;
@@ -36,7 +37,7 @@ function getEquationString(nodes, edges, startNodeId) {
 
 
 
-function OutputNode({ data }) {
+function OutputNode(props) {
 
   const { getNodes, getEdges } = useReactFlow();
   const [equationString, setEquationString] = useState('');
@@ -53,7 +54,7 @@ function OutputNode({ data }) {
 
   return (
     <div className="output-node">
-      <Handle type="target" position={Position.Left} />
+      <CustomHandle id={props.id + "_target1"} type="target" position={Position.Left} connectionCount={1}/>
       <div>Output: {equationString}</div>
       <button onClick={handleGetSequence}>Get Sequence</button>
     </div>
