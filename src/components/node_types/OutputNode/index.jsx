@@ -9,7 +9,7 @@ function getSequentialNodes(nodes, edges, startNodeId) {
   while (true) {
     sequence.push(currentNodeId);
     const currentNode = nodes.find((node) => node.id === currentNodeId);
-    const incomers = getIncomers(curren4tNode, nodes, edges);
+    const incomers = getIncomers(currentNode, nodes, edges);
     
     if (incomers.length === 0) {
       break;
@@ -53,7 +53,7 @@ function OutputNode(props) {
   };
 
   return (
-    <div className="output-node">
+    <div className="output-node description">
       <CustomHandle id={props.id + "_target1"} type="target" position={Position.Left} connectionCount={1}/>
       <div>Output: {equationString}</div>
       <button onClick={handleGetSequence}>Get Sequence</button>

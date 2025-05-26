@@ -1,4 +1,4 @@
-import { Handle, useNodeConnections } from '@xyflow/react';
+import { Handle } from '@xyflow/react';
 
 function CustomHandle(props) {
 
@@ -7,8 +7,6 @@ function CustomHandle(props) {
             <Handle
                 {...props}
                 className="handle"
-                // isConnectable={connections.length < props.connectionCount}
-                //isValidConnection={isValidConnection}
             />
         </div>
     );

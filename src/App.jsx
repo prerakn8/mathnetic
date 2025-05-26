@@ -24,6 +24,7 @@ import '@xyflow/react/dist/style.css';
 
 // Custom Imports
 import Sidebar from './components/SideBar';
+import OutputPane from './components/OutputPane';
 
 import { TypeProvider, useType } from './components/context/TypeContext';
 import { LatexEqProvider, useLatexEq } from './components/context/LatexEqContext';
@@ -38,29 +39,23 @@ const nodeTypes = {
   output: OutputNode,
 }
 
-// Track Nodes and Edges in Workspace (3D Blocks)
-const workspaceNodes = [];
-const workspaceEdges = [];
+// 3D?
+let groupNum = 0;
+let rowNum = 0;
+let colNum = 0;
 
 // Assign Unique ID to Every Node
 let id = 0;
 const getId = () => `dndnode_${id++}`;
 
 // Proximity Connection Variables
-const MIN_DISTANCE = 250;
+const MIN_DISTANCE = 200;
  
 const Flow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   
   const reactFlowInstance = useReactFlow();
-
-  const onConnect = useCallback((params) => 
-    {
-      setEdges((eds) => addEdge(params, eds));
-    },
-    [setEdges]
-  );
 
   const onNodesDelete = useCallback((deleted) => 
     {
@@ -136,12 +131,9 @@ const Flow = () => {
     let newEdge = null;
 
     const isSourceHandleInUse = (nodeId, handleId, edges) => {
-      console.log(edges);
-      const result = edges.some(
+      return edges.some(
         (edge) => edge.source === nodeId && edge.sourceHandle === handleId
       ); 
-      console.log(result);
-      return result;
     };
 
     const isTargetHandleInUse = (nodeId, handleId, edges) => {
@@ -241,6 +233,56 @@ const Flow = () => {
           )
         ) {
           nextEdges.push(closeEdge);
+
+          const sourceNode = reactFlowInstance.getNode(closeEdge.source);
+          const targetNode = reactFlowInstance.getNode(closeEdge.target);
+
+          if (sourceNode === node)
+          {
+            node.data.group = targetNode.data.group;
+            if (closeEdge.targetHandle.endsWith("target1"))
+            {
+              node.data.row = targetNode.data.row;
+              node.data.col = targetNode.data.col - 1;
+            }
+            else {
+              node.data.row = targetNode.data.row - 1;
+              node.data.col = targetNode.data.col;
+            }
+
+            if (node.data.row > rowNum)
+            {
+              rowNum = node.data.row;
+            }
+
+            if (node.data.col > colNum)
+            {
+              colNum = node.data.col;
+            }
+          }
+          else 
+          {
+            node.data.group = sourceNode.data.group;
+            if (closeEdge.sourceHandle.endsWith("source1"))
+            {
+              node.data.row = sourceNode.data.row;
+              node.data.col = sourceNode.data.col + 1;
+            }
+            else {
+              node.data.row = sourceNode.data.row + 1;
+              node.data.col = sourceNode.data.col;
+            }
+
+            if (node.data.row > rowNum)
+            {
+              rowNum = node.data.row;
+            }
+
+            if (node.data.col > colNum)
+            {
+              colNum = node.data.col;
+            }
+          }
         }
  
         return nextEdges;
@@ -281,10 +323,10 @@ const Flow = () => {
         id: getId(),
         type,
         position,
-        data: { value: `${latexEq}`, label: `${latexEq}` },
+        data: { value: `${latexEq}`, label: `${latexEq}`, group: groupNum, row: rowNum, col: colNum },
       };
 
-      workspaceNodes.push(newNode);
+      groupNum += 1;
 
       setNodes((nds) => nds.concat(newNode));
     },
@@ -310,13 +352,13 @@ const Flow = () => {
           onEdgesChange={onEdgesChange}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
-          onConnect={onConnect}
           onDrop={onDrop}
           onDragStart={onDragStart}
           onDragOver={onDragOver}
           defaultEdgeOptions={defaultEdgeOptions}
           SelectionMode={SelectionMode.Partial}
           nodeTypes={nodeTypes}
+          snapToGrid
           fitView
         >
           <Panel position="top-center">Drag Blocks to Start Making Math!</Panel>
@@ -326,6 +368,7 @@ const Flow = () => {
         </ReactFlow>
       </div>
       <Sidebar />
+      <OutputPane groupNum={groupNum} rowNum={rowNum} colNum={colNum}/>
     </div>
   );
 };
