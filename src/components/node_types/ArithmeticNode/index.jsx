@@ -4,10 +4,10 @@ import CustomHandle from '../../CustomHandle';
 import 'katex/dist/katex.min.css'
 import { InlineMath } from 'react-katex';
 
-function NumericNode(props) {
+function ArithmeticNode(props) {
 
   return (
-    <div className="numeric-node">
+    <div className="arithmetic-node">
       <CustomHandle id={props.id + "_target1"} type="target" position={Position.Left} connectionCount={1} />
       <CustomHandle id={props.id + "_target2"} type="target" position={Position.Top} connectionCount={1} />
       <InlineMath>{props.data.value}</InlineMath>
@@ -17,4 +17,4 @@ function NumericNode(props) {
   );
 }
  
-export default NumericNode;
+export default ArithmeticNode;

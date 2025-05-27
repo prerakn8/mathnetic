@@ -1,7 +1,11 @@
 @import './components/node_types/NumericNode/index.css';
 @import './components/node_types/LaTeXNode/index.css';
 @import './components/node_types/OutputNode/index.css';
+@import './components/node_types/ArithmeticNode/index.css';
+@import './components/node_types/VariableNode/index.css';
 @import './components/context/index.css';
+@import './components/Sidebar/index.css';
+@import './components/ContextMenu/index.css';
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -16,6 +20,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
 }
 
 a {

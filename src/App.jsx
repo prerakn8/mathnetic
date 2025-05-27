@@ -22,19 +22,26 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
+
 // Custom Imports
 import Sidebar from './components/SideBar';
 import OutputPane from './components/OutputPane';
+import TouchScreen from './components/TouchScreen';
+import ContextMenu from './components/ContextMenu';
 
 import { TypeProvider, useType } from './components/context/TypeContext';
 import { LatexEqProvider, useLatexEq } from './components/context/LatexEqContext';
 
 import NumericNode from './components/node_types/NumericNode';
 import LaTeXNode from './components/node_types/LaTeXNode';
+import ArithmeticNode from './components/node_types/ArithmeticNode';
+import VariableNode from './components/node_types/VariableNode';
 
 const nodeTypes = {
   numeric: NumericNode,
   latex: LaTeXNode,
+  arithmetic: ArithmeticNode,
+  variable: VariableNode
 }
 
 // Variables to Track How Nodes Are Arranged
@@ -52,8 +59,32 @@ const MIN_DISTANCE = 200;
 const Flow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  
+  const [menu, setMenu] = useState(null);
+  const ref = useRef(null);
   const reactFlowInstance = useReactFlow();
+
+  const onNodeContextMenu = useCallback(
+    (event, node) => {
+      // Prevent native context menu from showing
+      event.preventDefault();
+ 
+      // Calculate position of the context menu. We want to make sure it
+      // doesn't get positioned off-screen.
+      const pane = ref.current.getBoundingClientRect();
+      setMenu({
+        id: node.id,
+        top: event.clientY < pane.height - 200 && event.clientY,
+        left: event.clientX < pane.width - 200 && event.clientX,
+        right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
+        bottom:
+          event.clientY >= pane.height - 200 && pane.height - event.clientY,
+      });
+    },
+    [setMenu],
+  );
+ 
+  // Close the context menu if it's open whenever the window is clicked.
+  const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
 
   const onNodesDelete = useCallback((deleted) => 
     {
@@ -267,7 +298,6 @@ const Flow = () => {
 
           if (sourceNode.data.group === targetNode.data.group)
           {
-            console.log("I exist");
             let incomers = getIncomers(node, nodes, edges);
             let outgoers = getOutgoers(node, nodes, edges);
             let currentSourceNode = node;
@@ -329,77 +359,6 @@ const Flow = () => {
             updateSubsequentNodesOutgoers(currentSourceNode, outgoers);
             updateSubsequentNodesIncomers(currentSourceNode, incomers);
           }
-          // while (outgoers.length > 0)
-          // {
-          //   let currentNode = outgoers[0];
-          //   outgoers.forEach((outgoing) => {
-          //     // if (outgoing.id === targetNode.id)
-          //     // {
-          //     //   return;
-          //     // };
-          //     const connectedEdges = getConnectedEdges([outgoing], edges);
-          //     connectedEdges.forEach((edge) => {
-          //       newTargetNode = reactFlowInstance.getNode(edge.target);
-          //       newSourceNode = reactFlowInstance.getNode(edge.source);
-          //       if (edge.targetHandle.endsWith("target1"))
-          //       {
-          //         newSourceNode.data.row = outgoing.data.row;
-          //         newSourceNode.data.col = outgoing.data.col - 1;
-          //         newSourceNode.data.group = outgoing.data.group;
-
-          //         // outgoing.data.row = newSourceNode.data.row;
-          //         // outgoing.data.col = newSourceNode.data.col + 1;
-          //         // outgoing.data.group = newSourceNode.data.group;
-          //       }
-          //       else if (edge.targetHandle.endsWith("target2")){
-          //         newSourceNode.data.row = outgoing.data.row - 1;
-          //         newSourceNode.data.col = outgoing.data.col;
-          //         newSourceNode.data.group = outgoing.data.group;
-          //         // outgoing.data.row = newSourceNode.data.row + 1;
-          //         // outgoing.data.col = newSourceNode.data.col;
-          //         // outgoing.data.group = newSourceNode.data.group;
-          //       }
-          //     });
-          //   });
-          //   outgoers = getOutgoers(currentNode, nodes, edges);
-          // }
-
-          // newSourceNode = sourceNode;
-          // newTargetNode = targetNode;
-
-          // while (incomers.length > 0)
-          // {
-          //   let currentNode = incomers[0];
-          //   incomers.forEach((incoming) => {
-          //     // if (incoming.id === sourceNode.id)
-          //     // {
-          //     //   return;
-          //     // };
-          //     const connectedEdges = getConnectedEdges([incoming], edges);
-          //     connectedEdges.forEach((edge) => {
-          //       newTargetNode = reactFlowInstance.getNode(edge.target);
-          //       newSourceNode = reactFlowInstance.getNode(edge.source);
-          //       if (edge.sourceHandle.endsWith("source1"))
-          //       {
-          //         newTargetNode.data.row = incoming.data.row;
-          //         newTargetNode.data.col = incoming.data.col + 1;
-          //         newTargetNode.data.group = incoming.data.group;
-          //         // incoming.data.row = newTargetNode.data.row;
-          //         // incoming.data.col = newTargetNode.data.col - 1;
-          //         // incoming.data.group = newTargetNode.data.group;
-          //       }
-          //       else if (edge.sourceHandle.endsWith("source2")) {
-          //         newTargetNode.data.row = incoming.data.row + 1;
-          //         newTargetNode.data.col = incoming.data.col;
-          //         newTargetNode.data.group = incoming.data.group;
-          //         // incoming.data.row = newTargetNode.data.row - 1;
-          //         // incoming.data.col = newTargetNode.data.col;
-          //         // incoming.data.group = newTargetNode.data.group;
-          //       }
-          //     });
-          //   });
-          //   incomers = getIncomers(currentNode, nodes, edges);
-          // }
 
           if (node.data.row > rowNum)
           {
@@ -486,19 +445,23 @@ const Flow = () => {
           onDrop={onDrop}
           onDragStart={onDragStart}
           onDragOver={onDragOver}
+          ref={ref}
+          onPaneClick={onPaneClick}
+          onNodeContextMenu={onNodeContextMenu}
           defaultEdgeOptions={defaultEdgeOptions}
           SelectionMode={SelectionMode.Partial}
           nodeTypes={nodeTypes}
           snapToGrid
           fitView
+          className="reactflow-container"
         >
           <Panel position="top-center">Drag Blocks to Start Making Math!</Panel>
           <MiniMap ariaLabel="Mathnetic Mini Map" pannable zoomable/>
           <Controls />
           <Background variant="dots" gap={12} size={1} />
+          {menu && <ContextMenu onClick={onPaneClick} {...menu} />}
         </ReactFlow>
       </div>
-      
       <OutputPane groupNum={groupNum} rowNum={rowNum} colNum={colNum}/>
     </div>
   );

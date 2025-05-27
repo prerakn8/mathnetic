@@ -1,5 +1,7 @@
 import { Position, useReactFlow, getIncomers, useNodeId } from '@xyflow/react';
 import { useState, useEffect } from 'react';
+import 'katex/dist/katex.min.css'
+import { InlineMath } from 'react-katex';
 
 export default (props) => {
     const { getNodes, getEdges } = useReactFlow();
@@ -57,10 +59,10 @@ export default (props) => {
                 }
                 if (j < node3D[0].length - 1)
                 {
-                    newString += "\n";
+                    newString += "\\\\";
                 }
             }
-            newString += "\n\n";
+            newString += "\\\\~\\\\";
         }
 
         setEquationString(newString);
@@ -71,9 +73,9 @@ export default (props) => {
     }, [getEdges(), getNodes().length]);
     
     return (
-        <aside>
+        <aside className="output-pane print">
             <div className="description">Output</div>
-            <pre>{equationString}</pre>
+            <InlineMath math={equationString}/>
         </aside>
     );
 };
