@@ -5,7 +5,6 @@ import { useType } from '../context/TypeContext';
 import { useLatexEq } from '../context/LatexEqContext';
 import 'katex/dist/katex.min.css'
 import { InlineMath } from 'react-katex';
-import TouchScreen from '../TouchScreen';
 
 export default () => {
   const [_, setType] = useType();
@@ -16,13 +15,14 @@ export default () => {
     setType(nodeType);
     setLatexEq(nodeLatexEq);
     event.dataTransfer.effectAllowed = 'move';
-  };
+  };     
+     
 
   // Yes, I probably should have used a for loop. Shut up. 
   return (
     <aside className="sidebar">
       <div className="description">You can drag these nodes to the pane on the right.</div>
-        <div className="dndnode" onDragStart={(event) => onDragStart(event, 'numeric', '\\pi')} draggable>
+        <div className="dndnode" onDragStart={(event) => onDragStart(event, 'numeric', '{\\pi}')} draggable>
           <InlineMath>\pi</InlineMath>
         </div>
         <div className="dndnode" onDragStart={(event) => onDragStart(event, 'numeric', 'e')} draggable>
@@ -68,25 +68,25 @@ export default () => {
       <div className="dndnode" onDragStart={(event) => onDragStart(event, 'arithmetic', '-')} draggable>
         <InlineMath>-</InlineMath>
       </div>
-      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'arithmetic', '\\times')} draggable>
+      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'arithmetic', '{\\times}')} draggable>
         <InlineMath>\times</InlineMath>
       </div>
-      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'arithmetic', '\\div')} draggable>
+      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'arithmetic', '{\\div}')} draggable>
         <InlineMath>\div</InlineMath>
       </div>
       <div className="dndnode" onDragStart={(event) => onDragStart(event, 'arithmetic', '=')} draggable>
         <InlineMath>=</InlineMath>
       </div>
-      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'arithmetic', '\\pm')} draggable>
+      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'arithmetic', '{\\pm}')} draggable>
         <InlineMath>\pm</InlineMath>
       </div>
       <div className="dndnode" onDragStart={(event) => onDragStart(event, 'variable', 'x')} draggable>
         <InlineMath>x</InlineMath>
       </div>
-      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'variable', 'x')} draggable>
+      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'variable', 'y')} draggable>
         <InlineMath>y</InlineMath>
       </div>
-      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'variable', 'x')} draggable>
+      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'variable', 'z')} draggable>
         <InlineMath>z</InlineMath>
       </div>
     </aside>
