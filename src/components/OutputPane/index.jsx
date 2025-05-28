@@ -35,7 +35,7 @@ export default (props) => {
             node3D[i] = new Array(props.rowNum - startingRowNum + 1);
             for (let j = 0; j < node3D[i].length; j++)
             {
-                node3D[i][j] = new Array(props.colNum - startingColNum + 1).fill(0);
+                node3D[i][j] = new Array(props.colNum - startingColNum + 1);
             }
         }
 
@@ -48,11 +48,16 @@ export default (props) => {
         let newString = '';
         for (let i = 0; i < node3D.length; i++)
         {
+            if (node3D[i].flat(Infinity).every(node => node === undefined))
+            {
+                continue; // Skip empty groups
+            }
+
             for (let j = 0; j < node3D[0].length; j++)
             {
                 for (let k = 0; k < node3D[0][0].length; k++)
                 {
-                    if (node3D[i][j][k] != 0)
+                    if (node3D[i][j][k] !== undefined)
                     {
                         newString += node3D[i][j][k].data.value;
                     }     

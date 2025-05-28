@@ -27,8 +27,7 @@ export default () => {
         </div>
         <div className="dndnode" onDragStart={(event) => onDragStart(event, 'numeric', 'e')} draggable>
           <InlineMath>e</InlineMath>
-        </div>
-      
+        </div>      
       <div className="dndnode" onDragStart={(event) => onDragStart(event, 'numeric', '1')} draggable>
         <InlineMath>1</InlineMath>
       </div>

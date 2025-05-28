@@ -21,8 +21,9 @@ import {
   useNodeConnections,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-// import { DndProvider } from 'react-dnd';
-// import { TouchBackend } from 'react-dnd-touch-backend';
+import { DndProvider } from 'react-dnd';
+import { TouchBackend } from 'react-dnd-touch-backend';
+import { useDrop } from 'react-dnd';
 
 // Custom Imports
 import Sidebar from './components/SideBar';
@@ -473,7 +474,9 @@ export default function App() {
       <ReactFlowProvider>
         <TypeProvider>
           <LatexEqProvider>
+            <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
             <Flow />
+            </DndProvider>
           </LatexEqProvider>
         </TypeProvider>
       </ReactFlowProvider >
