@@ -36,12 +36,12 @@ The application is centered around the idea of *snapping*. In other words, if a 
 ## Tools You Should Become Familiar With
 
 Here's a list of software, libraries, and frameworks you should be familiar with to be successful:
-* Git           <- Know how to save work locally and upload to GitHub.
-* GitHub        <- Know how to retrieve changes people made to your local repository.
-* JavaScript    <- Should be a given, since you are using React.js. 
-* ReactFlow     <- This is a big one. The entire application relies on this framework. Be familiar working with node-based systems.
-* React         <- Understand how React Hooks work. Essential for making the application responsive. 
-* HTML5 & JSX   <- Essential for creating the structure of the site and creating new nodes. 
-* CSS           <- Styling the application. Be careful and organized in how you assign CSS classes to JSX elements. 
-* npm           <- To Start Up the Server on Your Local Machine. 
-* Figma         <- A software for brainstorming the UI/UX of the application. 
+* Git
+* GitHub
+* JavaScript 
+* ReactFlow
+* React 
+* HTML5 & JSX 
+* CSS 
+* npm 
+* Figma
