@@ -4,7 +4,7 @@
 @import './components/node_types/ArithmeticNode/index.css';
 @import './components/node_types/VariableNode/index.css';
 @import './components/context/index.css';
-@import './components/Sidebar/index.css';
+@import './components/SideBar/index.css';
 @import './components/ContextMenu/index.css';
 
 :root {
