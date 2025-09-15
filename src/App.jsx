@@ -87,6 +87,7 @@ const Flow = () => {
   // Close the context menu if it's open whenever the window is clicked.
   const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
 
+  // Handles deleting an edge by connecting the incomers and outcomers and deleting edges to the nodes
   const onNodesDelete = useCallback((deleted) => 
     {
       setEdges(deleted.reduce((acc, node) => 
@@ -413,7 +414,7 @@ const Flow = () => {
         data: { value: `${latexEq}`, label: `${latexEq}`, 
                 group: groupNum, row: rowNum, col: colNum },
       };
-
+      console.log(groupNum);
       groupNum += 1;
 
       setNodes((nds) => nds.concat(newNode));
