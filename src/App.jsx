@@ -110,9 +110,7 @@ const Flow = () => {
             })),
           );
 
-          
-
-          return [...remainingEdges, ...createdEdges];
+          return [...remainingEdges];
         }, edges),
       );
     },
@@ -230,18 +228,18 @@ const Flow = () => {
  
   const onNodeDrag = useCallback(
     (_, node) => {
-      const closeEdge = getClosestEdge(node);
+      const closeEdge = getClosestEdge(node); // Finds closest edge
  
       setEdges((es) => {
-        const nextEdges = es.filter((e) => e.className !== 'temp');
+        const nextEdges = es.filter((e) => e.className !== 'temp'); // removes all temp edges
  
         if (closeEdge && !nextEdges.find(
             (ne) =>
-              (ne.source === closeEdge.source && ne.target === closeEdge.target) || (ne.source === closeEdge.target && ne.target === closeEdge.source)
+              (ne.source === closeEdge.source && ne.target === closeEdge.target) || (ne.source === closeEdge.target && ne.target === closeEdge.source) // checks if already connected
           ) 
         ) {
-          closeEdge.className = 'temp';
-          nextEdges.push(closeEdge);
+          closeEdge.className = 'temp'; // makes temporary
+          nextEdges.push(closeEdge); // adds the edge
         }
 
         return nextEdges;
@@ -252,36 +250,38 @@ const Flow = () => {
  
   const onNodeDragStop = useCallback(
     (_, node) => {
-      const closeEdge = getClosestEdge(node);
+      const closeEdge = getClosestEdge(node); // finds closest edge
  
       setEdges((es) => {
-        const nextEdges = es.filter((e) => e.className !== 'temp');
+        const nextEdges = es.filter((e) => e.className !== 'temp'); // gets rid of all temp edges
  
         if (
           closeEdge &&
           !nextEdges.find(
             (ne) =>
               (ne.source === closeEdge.source && ne.target === closeEdge.target) || 
-              (ne.source === closeEdge.target && ne.target === closeEdge.source),
+              (ne.source === closeEdge.target && ne.target === closeEdge.source), // if not already added
           )
         ) 
         {
-          nextEdges.push(closeEdge);
+          nextEdges.push(closeEdge); // add closest edge
 
-          const sourceNode = reactFlowInstance.getNode(closeEdge.source);
+          const sourceNode = reactFlowInstance.getNode(closeEdge.source); // gets source and target node
           const targetNode = reactFlowInstance.getNode(closeEdge.target);
 
           if (sourceNode.id === node.id)
           {
+            // if source is this node
+            // Set group ID's equal to target
             node.data.group = targetNode.data.group;
             if (closeEdge.targetHandle.endsWith("target1"))
             {
-              node.data.row = targetNode.data.row;
-              node.data.col = targetNode.data.col - 1;
+              node.data.row = targetNode.data.row; // same row
+              node.data.col = targetNode.data.col - 1; // left column
             }
             else if (closeEdge.targetHandle.endsWith("target2")) {
-              node.data.row = targetNode.data.row - 1;
-              node.data.col = targetNode.data.col;
+              node.data.row = targetNode.data.row - 1; // above row ?
+              node.data.col = targetNode.data.col; // same column
             }
           }
           else 
@@ -289,7 +289,7 @@ const Flow = () => {
             node.data.group = sourceNode.data.group;
             if (closeEdge.sourceHandle.endsWith("source1"))
             {
-              node.data.row = sourceNode.data.row;
+              node.data.row = sourceNode.data.row; // 
               node.data.col = sourceNode.data.col + 1;
             }
             else if (closeEdge.sourceHandle.endsWith("source2")){
@@ -412,7 +412,7 @@ const Flow = () => {
         type,
         position,
         data: { value: `${latexEq}`, label: `${latexEq}`, 
-                group: groupNum, row: rowNum, col: colNum },
+                group: groupNum, row: rowNum, col: colNum, leftNode: "", rightNode: "" },
       };
       console.log(groupNum);
       groupNum += 1;
