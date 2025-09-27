@@ -129,27 +129,28 @@ const Flow = () => {
     const { nodeLookup } = store.getState();
     const internalNode = getInternalNode(node.id);
 
-    const closestNode = Array.from(nodeLookup.values()).reduce(
-      (res, n) => {
-        if (n.id !== internalNode.id) {
+    // Creates an object that stores the closest node and its distance from node
+    const closestNode = Array.from(nodeLookup.values()).reduce(    // Essentially iterates through array of nodes with the function, transferring the previous res each time
+      (res, n) => {                                                // res holds the closest node and its distance at any point during the iteration, n is the current node
+        if (n.id !== internalNode.id) {}                            // Finding distance
           const dx = n.internals.positionAbsolute.x - internalNode.internals.positionAbsolute.x;
           const dy = n.internals.positionAbsolute.y - internalNode.internals.positionAbsolute.y;
           const d = Math.sqrt(dx * dx + dy * dy);
 
-          if (d < res.distance && d < MIN_DISTANCE) {
+          if (d < res.distance && d < MIN_DISTANCE) {               // Updating res if the distance is close enough to connect and lower than all other iterations
             res.distance = d;
             res.node = n;
           }
         }
-        return res;
+        return res; //returns res for the next iteration (how reduce)
       },
       {
-        distance: Number.MAX_VALUE,
+        distance: Number.MAX_VALUE, // Initial res
         node: null,
       },
     );
 
-    if (!closestNode.node) {
+    if (!closestNode.node) {           // if no node was found, end the function (probably mainly when the node was not within MIN_DISTANCE of another node)
       return null;
     }
 
@@ -266,14 +267,15 @@ const Flow = () => {
         {
           nextEdges.push(closeEdge); // add closest edge
 
-          const sourceNode = reactFlowInstance.getNode(closeEdge.source); // gets source and target node
+          const sourceNode = reactFlowInstance.getNode(closeEdge.source); // gets source and target node of edge
           const targetNode = reactFlowInstance.getNode(closeEdge.target);
 
           if (sourceNode.id === node.id)
           {
-            // if source is this node
-            // Set group ID's equal to target
+            // if source is this node, set this node's group ID equal to target's group
             node.data.group = targetNode.data.group;
+
+            // Set row and column of node based on which direction the edge is in. The correspondence of edges to targetHandle is defined in the node types
             if (closeEdge.targetHandle.endsWith("target1"))
             {
               node.data.row = targetNode.data.row; // same row
@@ -284,17 +286,18 @@ const Flow = () => {
               node.data.col = targetNode.data.col; // same column
             }
           }
-          else 
+          else
           {
+            // if target is this node, set this node's group equal to source's group
             node.data.group = sourceNode.data.group;
             if (closeEdge.sourceHandle.endsWith("source1"))
             {
-              node.data.row = sourceNode.data.row; // 
-              node.data.col = sourceNode.data.col + 1;
+              node.data.row = sourceNode.data.row; // Same row
+              node.data.col = sourceNode.data.col + 1; // Right column
             }
             else if (closeEdge.sourceHandle.endsWith("source2")){
-              node.data.row = sourceNode.data.row + 1;
-              node.data.col = sourceNode.data.col;
+              node.data.row = sourceNode.data.row + 1; // Lower row
+              node.data.col = sourceNode.data.col; // Same column
             }
           }
 
