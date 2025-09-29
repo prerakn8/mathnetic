@@ -96,7 +96,7 @@ const Flow = () => {
           const outgoers = getOutgoers(node, nodes, edges);         // Target nodes of current node
           const connectedEdges = getConnectedEdges([node], edges);  // All edges that are connected to the node (source or target)
 
-          const remainingEdges = acc.filter(                        // Removes all edges connected to the node from the accumulator     
+          const remainingEdges = acc.filter(                             
             (edge) => !connectedEdges.includes(edge),
           );
 
@@ -230,7 +230,7 @@ const Flow = () => {
 
     return newEdge;                     // Returns newly created edge
 
-  }, [edges.filter((e) => e.className !== 'temp').length]);         // The one dependency for this useCallback is the number of non-temporary edges
+  }, [edges.filter((e) => e.className !== 'temp').length]);  // The one dependency for this useCallback is the number of non-temporary edges
  
 
   const onNodeDrag = useCallback(
@@ -396,22 +396,23 @@ const Flow = () => {
   // DnD Implementation 
   const reactFlowWrapper = useRef(null);
   const { screenToFlowPosition } = useReactFlow();
-  const [type] = useType();
-  const [latexEq] = useLatexEq();
-  const onDragOver = useCallback(
+  const [type] = useType();                             // Context that gives type of currently dragged node
+  const [latexEq] = useLatexEq();                       // Context that gives LaTeX equation of currently dragged node (Both provided by sidebar)
+ 
+  const onDragOver = useCallback(                       // Graphic effect for when node is dragged over viewport
     (event) => {
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
     }, []);
-  const onDrop = useCallback(
-    (event) => {
+  
+  const onDrop = useCallback((event) => {               // When node is dropped onto the viewport
       event.preventDefault();
 
-      if (!type) {
+      if (!type) {                                      // Return if type is null
         return;
       }
 
-      if (!latexEq && type !== 'output') {
+      if (!latexEq && type !== 'output') {              // Special case for the unused output node
         return;
       }
 
@@ -420,7 +421,7 @@ const Flow = () => {
         y: event.clientY,
       });
 
-      const newNode = {
+      const newNode = {                                 // Creates new node using position and contexts                          
         id: getId(),
         type,
         position,
@@ -430,13 +431,13 @@ const Flow = () => {
       console.log(groupNum);
       groupNum += 1;
 
-      setNodes((nds) => nds.concat(newNode));
+      setNodes((nds) => nds.concat(newNode));   // Adds new node to nodes
     },
-    [screenToFlowPosition, type, latexEq],
+    [screenToFlowPosition, type, latexEq],      // dependencies for UseCallback()
   );
 
-  const onDragStart = (event, nodeType, nodeLatexEq) => {
-    setType(nodeType);
+  const onDragStart = (event, nodeType, nodeLatexEq) => { 
+    setType(nodeType);                                     
     setLatexEq(nodeLatexEq);
     event.dataTransfer.setData('text/plain', nodeType);
     event.dataTransfer.setData('text/plain', nodeLatexEq);
@@ -444,12 +445,12 @@ const Flow = () => {
   };
 
   
-
+  // Final return for <flow/>
   return (
     <div className="dndflow">
       <Sidebar />
-      <div className="reactflow-wrapper" ref={reactFlowWrapper}>
-        <ReactFlow
+      <div className="reactflow-wrapper" ref={reactFlowWrapper}>  
+        <ReactFlow                                   
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
@@ -482,10 +483,12 @@ const Flow = () => {
   );
 };
 
+// Exports flow (Entire above part of app.jsx) within necessary context providers
+
 export default function App() {
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      <ReactFlowProvider>
+      <ReactFlowProvider>                                             
         <TypeProvider>
           <LatexEqProvider>
             <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>

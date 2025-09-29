@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\src",
+    "\\src\\components",
+    "\\src\\components\\context",
+    "\\src\\components\\context\\LatexEqContext",
+    "\\src\\components\\CustomHandle",
+    "\\src\\components\\node_types",
+    "\\src\\components\\node_types\\NumericNode",
+    "\\src\\components\\SideBar"
+  ],
+  "SelectedNode": "\\src\\components\\OutputPane",
+  "PreviewInSolutionExplorer": false
+}
