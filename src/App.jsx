@@ -129,6 +129,7 @@ const Flow = () => {
     const { nodeLookup } = store.getState();
     const internalNode = getInternalNode(node.id);
 
+    // Finds closest node closer than MIN_DISTANCE
     const closestNode = Array.from(nodeLookup.values()).reduce(
       (res, n) => {
         if (n.id !== internalNode.id) {
@@ -149,6 +150,7 @@ const Flow = () => {
       },
     );
 
+    // If no node, skip
     if (!closestNode.node) {
       return null;
     }
@@ -156,16 +158,18 @@ const Flow = () => {
     const xDistance = closestNode.node.internals.positionAbsolute.x - internalNode.internals.positionAbsolute.x;
     const yDistance = closestNode.node.internals.positionAbsolute.y - internalNode.internals.positionAbsolute.y;
     
-    const lessHorizontalDistance = Math.abs(xDistance) < Math.abs(yDistance);
+      const lessHorizontalDistance = Math.abs(xDistance) < Math.abs(yDistance);
 
     let newEdge = null;
 
+    // Given nodeID, handleId, and edges, finds if source handle in use.
     const isSourceHandleInUse = (nodeId, handleId, edges) => {
       return edges.some(
         (edge) => edge.source === nodeId && edge.sourceHandle === handleId
       ); 
     };
 
+      // Given nodeID, handleId, and edges, finds if target handle in use.
     const isTargetHandleInUse = (nodeId, handleId, edges) => {
       return edges.some(
         (edge) => edge.target === nodeId && edge.targetHandle === handleId
@@ -175,7 +179,7 @@ const Flow = () => {
     let isInvalidConnection = null;
 
     if (!lessHorizontalDistance) {
-      const closeNodeIsSource = xDistance < 0;
+      const closeNodeIsSource = xDistance < 0; // To the right
 
       newEdge = {
         id: closeNodeIsSource 
@@ -189,7 +193,7 @@ const Flow = () => {
 
       if (closeNodeIsSource)
       {
-        isInvalidConnection = isSourceHandleInUse(closestNode.node.id, newEdge.sourceHandle, edges);
+          isInvalidConnection = isSourceHandleInUse(closestNode.node.id, newEdge.sourceHandle, edges);
       }
       else {
         isInvalidConnection = isTargetHandleInUse(closestNode.node.id, newEdge.targetHandle, edges);
@@ -218,10 +222,10 @@ const Flow = () => {
       }
     }
 
-    if (isInvalidConnection)
-    {
-      return null;
-    }
+    //if (isInvalidConnection)
+    //{
+    //  return null;
+    //}
 
     return newEdge;
   }, [edges.filter((e) => e.className !== 'temp').length]);
@@ -238,6 +242,7 @@ const Flow = () => {
               (ne.source === closeEdge.source && ne.target === closeEdge.target) || (ne.source === closeEdge.target && ne.target === closeEdge.source) // checks if already connected
           ) 
         ) {
+            
           closeEdge.className = 'temp'; // makes temporary
           nextEdges.push(closeEdge); // adds the edge
         }
@@ -249,11 +254,12 @@ const Flow = () => {
   );
  
   const onNodeDragStop = useCallback(
-    (_, node) => {
+      (_, node) => {
+          console.log(node.data.leftNode);
       const closeEdge = getClosestEdge(node); // finds closest edge
  
       setEdges((es) => {
-        const nextEdges = es.filter((e) => e.className !== 'temp'); // gets rid of all temp edges
+        let nextEdges = es.filter((e) => e.className !== 'temp'); // gets rid of all temp edges
  
         if (
           closeEdge &&
@@ -264,7 +270,6 @@ const Flow = () => {
           )
         ) 
         {
-          nextEdges.push(closeEdge); // add closest edge
 
           const sourceNode = reactFlowInstance.getNode(closeEdge.source); // gets source and target node
           const targetNode = reactFlowInstance.getNode(closeEdge.target);
@@ -282,7 +287,12 @@ const Flow = () => {
             else if (closeEdge.targetHandle.endsWith("target2")) {
               node.data.row = targetNode.data.row - 1; // above row ?
               node.data.col = targetNode.data.col; // same column
-            }
+              }
+
+              // Also set leftNode and rightNode
+              nextEdges = nextEdges.filter((e) => e.source != node.id && e.target != targetNode.id);
+              node.data.rightNode = targetNode.id;
+              targetNode.data.leftNode = node.id;
           }
           else 
           {
@@ -295,8 +305,13 @@ const Flow = () => {
             else if (closeEdge.sourceHandle.endsWith("source2")){
               node.data.row = sourceNode.data.row + 1;
               node.data.col = sourceNode.data.col;
+              }
+              nextEdges = nextEdges.filter((e) => e.target != node.id && e.source != sourceNode.id);
+              node.data.leftNode = sourceNode.id;
+              sourceNode.data.rightNode = node.id;
             }
-          }
+
+            nextEdges.push(closeEdge); // add closest edge
 
           if (sourceNode.data.group === targetNode.data.group)
           {
