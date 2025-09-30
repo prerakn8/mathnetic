@@ -87,16 +87,16 @@ const Flow = () => {
   // Close the context menu if it's open whenever the window is clicked.
   const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
 
-  // Handles deleting an edge by connecting the incomers and outcomers and deleting edges to the nodes
+  // Handles deleting an edge by connecting the incomers and outgoers and deleting edges to the nodes
   const onNodesDelete = useCallback((deleted) => 
     {
       setEdges(deleted.reduce((acc, node) => 
         {
-          const incomers = getIncomers(node, nodes, edges);
-          const outgoers = getOutgoers(node, nodes, edges);
-          const connectedEdges = getConnectedEdges([node], edges);
+          const incomers = getIncomers(node, nodes, edges);         // Source nodes of current node
+          const outgoers = getOutgoers(node, nodes, edges);         // Target nodes of current node
+          const connectedEdges = getConnectedEdges([node], edges);  // All edges that are connected to the node (source or target)
 
-          const remainingEdges = acc.filter(
+          const remainingEdges = acc.filter(                             
             (edge) => !connectedEdges.includes(edge),
           );
 
@@ -127,34 +127,38 @@ const Flow = () => {
   const getClosestEdge = useCallback((node) => {
 
     const { nodeLookup } = store.getState();
-    const internalNode = getInternalNode(node.id);
+    const internalNode = getInternalNode(node.id); // Node being used
 
-    // Finds closest node closer than MIN_DISTANCE
-    const closestNode = Array.from(nodeLookup.values()).reduce(
-      (res, n) => {
-        if (n.id !== internalNode.id) {
-          const dx = n.internals.positionAbsolute.x - internalNode.internals.positionAbsolute.x;
+
+    // Creates an object that stores the closest node and its distance from node
+    const closestNode = Array.from(nodeLookup.values()).reduce(    // Essentially iterates through array of nodes with the function, transferring the previous res each time
+      (res, n) => {                                                // res holds the closest node and its distance at any point during the iteration, n is the current node
+        if (n.id !== internalNode.id) {    // Skips over internal node when iterating through the nodes                      
+          const dx = n.internals.positionAbsolute.x - internalNode.internals.positionAbsolute.x; // Finding distance
           const dy = n.internals.positionAbsolute.y - internalNode.internals.positionAbsolute.y;
           const d = Math.sqrt(dx * dx + dy * dy);
 
-          if (d < res.distance && d < MIN_DISTANCE) {
+          if (d < res.distance && d < MIN_DISTANCE) {               // Updating res if the distance is close enough to connect and lower than all other iterations
             res.distance = d;
             res.node = n;
           }
         }
-        return res;
+        return res; //returns res for the next iteration
       },
       {
-        distance: Number.MAX_VALUE,
+        distance: Number.MAX_VALUE, // Initial res
         node: null,
-      },
+      }
     );
 
-    // If no node, skip
-    if (!closestNode.node) {
+
+    if (!closestNode.node) {           // if no node was found, end the function (probably mainly when the node was not within MIN_DISTANCE of another node)
       return null;
     }
 
+    // The rest of the function creates a new edge between the closest node and internal node
+
+    // Finds distance in x and y directions (NOT absolute value)
     const xDistance = closestNode.node.internals.positionAbsolute.x - internalNode.internals.positionAbsolute.x;
     const yDistance = closestNode.node.internals.positionAbsolute.y - internalNode.internals.positionAbsolute.y;
     
@@ -181,17 +185,17 @@ const Flow = () => {
     if (!lessHorizontalDistance) {
       const closeNodeIsSource = xDistance < 0; // To the right
 
-      newEdge = {
+      newEdge = {                  // Creates an edge. Ternary statements set closest node as source and node as target or vice versa based on "closeNodeIsSource"
         id: closeNodeIsSource 
-        ? `${closestNode.node.id}-${node.id}`
-        : `${node.id}-${closestNode.node.id}`,
+            ? `${closestNode.node.id}-${node.id}`
+            : `${node.id}-${closestNode.node.id}`,
         source: closeNodeIsSource ? closestNode.node.id : node.id,
         sourceHandle: closeNodeIsSource ? `${closestNode.node.id}_source1` : `${node.id}_source1`,
         targetHandle: closeNodeIsSource ? `${node.id}_target1` : `${closestNode.node.id}_target1`,
         target: closeNodeIsSource ? node.id : closestNode.node.id,
       }
 
-      if (closeNodeIsSource)
+      if (closeNodeIsSource)        // Error handling by checking if the correct handles on the closest node are connected to the new edge
       {
           isInvalidConnection = isSourceHandleInUse(closestNode.node.id, newEdge.sourceHandle, edges);
       }
@@ -200,7 +204,7 @@ const Flow = () => {
       }
 
     }
-    else {
+    else {                                      // Vertical connections (identical, but with x and y swapped and different corresponding handles)
       const closeNodeIsSource = yDistance < 0;
 
       newEdge = {
@@ -222,14 +226,17 @@ const Flow = () => {
       }
     }
 
+
     //if (isInvalidConnection)
     //{
     //  return null;
     //}
 
-    return newEdge;
-  }, [edges.filter((e) => e.className !== 'temp').length]);
+    return newEdge;                     // Returns newly created edge
+
+  }, [edges.filter((e) => e.className !== 'temp').length]);  // The one dependency for this useCallback is the number of non-temporary edges
  
+
   const onNodeDrag = useCallback(
     (_, node) => {
       const closeEdge = getClosestEdge(node); // Finds closest edge
@@ -239,10 +246,12 @@ const Flow = () => {
  
         if (closeEdge && !nextEdges.find(
             (ne) =>
-              (ne.source === closeEdge.source && ne.target === closeEdge.target) || (ne.source === closeEdge.target && ne.target === closeEdge.source) // checks if already connected
+              (ne.source === closeEdge.source && ne.target === closeEdge.target) || 
+              (ne.source === closeEdge.target && ne.target === closeEdge.source) // checks if already connected
           ) 
+
         ) {
-            
+
           closeEdge.className = 'temp'; // makes temporary
           nextEdges.push(closeEdge); // adds the edge
         }
@@ -254,6 +263,7 @@ const Flow = () => {
   );
  
   const onNodeDragStop = useCallback(
+
       (_, node) => {
           console.log(node.data.leftNode);
       const closeEdge = getClosestEdge(node); // finds closest edge
@@ -266,19 +276,22 @@ const Flow = () => {
           !nextEdges.find(
             (ne) =>
               (ne.source === closeEdge.source && ne.target === closeEdge.target) || 
-              (ne.source === closeEdge.target && ne.target === closeEdge.source), // if not already added
+              (ne.source === closeEdge.target && ne.target === closeEdge.source), // If closeEdge is not already added
           )
         ) 
-        {
 
-          const sourceNode = reactFlowInstance.getNode(closeEdge.source); // gets source and target node
+        {
+          nextEdges.push(closeEdge); // add closeEdge to edges
+
+          const sourceNode = reactFlowInstance.getNode(closeEdge.source); // gets source and target node of closeEdge
           const targetNode = reactFlowInstance.getNode(closeEdge.target);
 
           if (sourceNode.id === node.id)
           {
-            // if source is this node
-            // Set group ID's equal to target
+            // if this node is the source, set this node's group ID equal to target's group
             node.data.group = targetNode.data.group;
+
+            // Set row and column of node based on which direction the edge is in. The correspondence of edges to targetHandle is defined in the node types
             if (closeEdge.targetHandle.endsWith("target1"))
             {
               node.data.row = targetNode.data.row; // same row
@@ -294,59 +307,63 @@ const Flow = () => {
               node.data.rightNode = targetNode.id;
               targetNode.data.leftNode = node.id;
           }
-          else 
+          else
           {
+            // if this node is the target, set this node's group equal to source's group
             node.data.group = sourceNode.data.group;
             if (closeEdge.sourceHandle.endsWith("source1"))
             {
-              node.data.row = sourceNode.data.row; // 
-              node.data.col = sourceNode.data.col + 1;
+              node.data.row = sourceNode.data.row; // Same row
+              node.data.col = sourceNode.data.col + 1; // Right column
             }
             else if (closeEdge.sourceHandle.endsWith("source2")){
+
               node.data.row = sourceNode.data.row + 1;
               node.data.col = sourceNode.data.col;
               }
               nextEdges = nextEdges.filter((e) => e.target != node.id && e.source != sourceNode.id);
               node.data.leftNode = sourceNode.id;
               sourceNode.data.rightNode = node.id;
+
             }
 
             nextEdges.push(closeEdge); // add closest edge
 
+          // Updates the row and column data all other nodes
           if (sourceNode.data.group === targetNode.data.group)
           {
-            let incomers = getIncomers(node, nodes, edges);
-            let outgoers = getOutgoers(node, nodes, edges);
+            let incomers = getIncomers(node, nodes, edges);     // returns array of nodes that are a source to node
+            let outgoers = getOutgoers(node, nodes, edges);     // returns array of nodes that are a target to node
             let currentSourceNode = node;
 
             function updateSubsequentNodesOutgoers(currentSourceNode, outgoers) {
-              if (outgoers.length < 1) {
+              if (outgoers.length < 1) {            // End function if the node has no targets
                 return;
               }
 
-              outgoers.forEach((outgoing) => {
-                  const connectedEdge = edges.find((edge) =>
+              outgoers.forEach((outgoing) => {                          // runs following function for each outgoer (basically a for loop)
+                  const connectedEdge = edges.find((edge) =>            // finds edge that goes between node and current outgoer in edges
                     edge.source === currentSourceNode.id && edge.target === outgoing.id
                   );
 
                   
-                  if (connectedEdge.targetHandle.endsWith("target1"))
+                  if (connectedEdge.targetHandle.endsWith("target1"))           // Right outgoer
                   {
                     outgoing.data.row = currentSourceNode.data.row;
                     outgoing.data.col = currentSourceNode.data.col + 1;
                     outgoing.data.group = currentSourceNode.data.group;
                   }
-                  else if (connectedEdge.targetHandle.endsWith("target2")) {
+                  else if (connectedEdge.targetHandle.endsWith("target2")) {    // Upper outgoer
                     outgoing.data.row = currentSourceNode.data.row + 1;
                     outgoing.data.col = currentSourceNode.data.col;
                     outgoing.data.group = currentSourceNode.data.group;
                   }
-                  let newOutgoers = getOutgoers(outgoing, nodes, edges);
+                  let newOutgoers = getOutgoers(outgoing, nodes, edges);    // Recursively updates all other outogoers
                   updateSubsequentNodesOutgoers(outgoing, newOutgoers);
-                });
+              });
             }
 
-            function updateSubsequentNodesIncomers(currentSourceNode, incomers) {
+            function updateSubsequentNodesIncomers(currentSourceNode, incomers) {       // Same but for incomers (bottom and left)
               if (incomers.length < 1) {
                 return;
               }
@@ -357,13 +374,13 @@ const Flow = () => {
                   );
 
                   
-                  if (connectedEdge.sourceHandle.endsWith("source1"))
+                  if (connectedEdge.sourceHandle.endsWith("source1"))               // Left incomer
                   {
                     incoming.data.row = currentSourceNode.data.row;
                     incoming.data.col = currentSourceNode.data.col - 1;
                     incoming.data.group = currentSourceNode.data.group;
                   }
-                  else if (connectedEdge.sourceHandle.endsWith("source2")) {
+                  else if (connectedEdge.sourceHandle.endsWith("source2")) {        // Bottom incomer
                     incoming.data.row = currentSourceNode.data.row - 1;
                     incoming.data.col = currentSourceNode.data.col;
                     incoming.data.group = currentSourceNode.data.group;
@@ -373,11 +390,11 @@ const Flow = () => {
                 });
             }
 
-            updateSubsequentNodesOutgoers(currentSourceNode, outgoers);
+            updateSubsequentNodesOutgoers(currentSourceNode, outgoers);        // Calling the previous two functions
             updateSubsequentNodesIncomers(currentSourceNode, incomers);
           }
 
-          if (node.data.row > rowNum)
+          if (node.data.row > rowNum)       // Updating count of rows and columns
           {
             rowNum = node.data.row;
           } 
@@ -388,7 +405,7 @@ const Flow = () => {
           } 
         }
  
-        return nextEdges;
+        return nextEdges;   // Returns array of edges that includes the new edge
       });
 
     },
@@ -398,22 +415,23 @@ const Flow = () => {
   // DnD Implementation 
   const reactFlowWrapper = useRef(null);
   const { screenToFlowPosition } = useReactFlow();
-  const [type] = useType();
-  const [latexEq] = useLatexEq();
-  const onDragOver = useCallback(
+  const [type] = useType();                             // Context that gives type of currently dragged node
+  const [latexEq] = useLatexEq();                       // Context that gives LaTeX equation of currently dragged node (Both provided by sidebar)
+ 
+  const onDragOver = useCallback(                       // Graphic effect for when node is dragged over viewport
     (event) => {
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
     }, []);
-  const onDrop = useCallback(
-    (event) => {
+  
+  const onDrop = useCallback((event) => {               // When node is dropped onto the viewport
       event.preventDefault();
 
-      if (!type) {
+      if (!type) {                                      // Return if type is null
         return;
       }
 
-      if (!latexEq && type !== 'output') {
+      if (!latexEq && type !== 'output') {              // Special case for the unused output node
         return;
       }
 
@@ -422,7 +440,7 @@ const Flow = () => {
         y: event.clientY,
       });
 
-      const newNode = {
+      const newNode = {                                 // Creates new node using position and contexts                          
         id: getId(),
         type,
         position,
@@ -432,13 +450,13 @@ const Flow = () => {
       console.log(groupNum);
       groupNum += 1;
 
-      setNodes((nds) => nds.concat(newNode));
+      setNodes((nds) => nds.concat(newNode));   // Adds new node to nodes
     },
-    [screenToFlowPosition, type, latexEq],
+    [screenToFlowPosition, type, latexEq],      // dependencies for UseCallback()
   );
 
-  const onDragStart = (event, nodeType, nodeLatexEq) => {
-    setType(nodeType);
+  const onDragStart = (event, nodeType, nodeLatexEq) => { 
+    setType(nodeType);                                     
     setLatexEq(nodeLatexEq);
     event.dataTransfer.setData('text/plain', nodeType);
     event.dataTransfer.setData('text/plain', nodeLatexEq);
@@ -446,12 +464,12 @@ const Flow = () => {
   };
 
   
-
+  // Final return for <flow/>
   return (
     <div className="dndflow">
       <Sidebar />
-      <div className="reactflow-wrapper" ref={reactFlowWrapper}>
-        <ReactFlow
+      <div className="reactflow-wrapper" ref={reactFlowWrapper}>  
+        <ReactFlow                                   
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
@@ -484,10 +502,12 @@ const Flow = () => {
   );
 };
 
+// Exports flow (Entire above part of app.jsx) within necessary context providers
+
 export default function App() {
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      <ReactFlowProvider>
+      <ReactFlowProvider>                                             
         <TypeProvider>
           <LatexEqProvider>
             <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>

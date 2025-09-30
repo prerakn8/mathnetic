@@ -11,7 +11,7 @@ export default () => {
   const [__, setLatexEq] = useLatexEq();
   
 
-  const onDragStart = (event, nodeType, nodeLatexEq) => {
+  const onDragStart = (event, nodeType, nodeLatexEq) => {   // Moves type and value into contexts for use in app.jsx
     setType(nodeType);
     setLatexEq(nodeLatexEq);
     event.dataTransfer.effectAllowed = 'move';
@@ -19,6 +19,8 @@ export default () => {
      
 
   // Yes, I probably should have used a for loop. Shut up. 
+
+  // Drag and drop nodes, nodes in sidebar that are converted to actual nodes in app.jsx
   return (
     <aside className="sidebar">
       <div className="description">You can drag these nodes to the pane on the right.</div>
@@ -88,9 +90,9 @@ export default () => {
       <div className="dndnode" onDragStart={(event) => onDragStart(event, 'variable', 'z')} draggable>
         <InlineMath>z</InlineMath>
           </div>
-          <div className="dndnode" onDragStart={(event) => onDragStart(event, 'numeric', '.')} draggable>
+      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'numeric', '.')} draggable>
               <InlineMath>.</InlineMath>
-          </div>
+      </div>
       
     </aside>
   );

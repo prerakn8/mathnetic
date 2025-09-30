@@ -28,7 +28,7 @@ export default (props) => {
                 startingColNum = nodes[i].data.col;
             }
         }
-
+        
         let node3D = new Array(props.groupNum);
         for (let i = 0; i < node3D.length; i++)
         {
