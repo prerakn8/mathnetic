@@ -449,7 +449,7 @@ const Flow = () => {
         type,
         position,
         data: { value: `${latexEq}`, label: `${latexEq}`, 
-                group: groupNum, row: rowNum, col: colNum, leftNode: "", rightNode: "" , upperNode: "", lowerNode: ""},
+                group: groupNum, row: rowNum, col: colNum, leftNode: '', rightNode: '', upperNode: '', lowerNode: ''},
       };
       console.log(groupNum);
       groupNum += 1;

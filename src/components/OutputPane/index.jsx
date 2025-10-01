@@ -4,9 +4,37 @@ import 'katex/dist/katex.min.css'
 import { InlineMath } from 'react-katex';
 
 export default (props) => {
-    const { getNodes, getEdges } = useReactFlow();
+    const { getNode, getNodes, getEdges } = useReactFlow();
     const [equationString, setEquationString] = useState('');
 
+    const readEquation = (startingNode) => {
+        let lineString = '';
+        let currentNode = startingNode;
+
+        while (currentNode !== undefined)   // Iterating through tree, ends when there is no right connection
+        {
+            if (currentNode.type === 'numeric')
+            {
+                lineString += currentNode.data.value;
+            }
+            if (currentNode.type === 'arithmetic')
+            {
+                lineString += currentNode.data.value;
+            }
+            if (currentNode.type === 'variable')
+            {
+                lineString += currentNode.data.value;
+            }
+            if (currentNode.type === 'latex')
+            {
+                lineString += currentNode.data.value;
+            }
+
+            currentNode = getNode(currentNode.data.rightNode) // Goes to right node by id
+        }  
+
+        return lineString;
+    }
     const updateEquationString = () => {
         // Some Rows And Columns Might Have A Negative Index
         // Because Those Nodes Were Placed As A Source to Existing
@@ -45,7 +73,18 @@ export default (props) => {
             node3D[currentNode.data.group][currentNode.data.row - startingRowNum][currentNode.data.col - startingColNum] = currentNode;
         }
 
+        // New System being implemented ----------------------------------------------
+        const startingNodes = nodes.filter((node) => node.data.leftNode === '') // List of all nodes that start a line (nothing to the left of it)
+        let newStringTemp = '' // Different newString to avoid causing errors for now
+        for (let i = 0; i < startingNodes.length; i++)
+        {
+            newStringTemp += readEquation(startingNodes[i]); 
+            newStringTemp += "\\\\";
+        }
+        // ---------------------------------------------------------------------------
+        
         let newString = '';
+
         for (let i = 0; i < node3D.length; i++)
         {
             if (node3D[i].flat(Infinity).every(node => node === undefined))
@@ -70,7 +109,7 @@ export default (props) => {
             newString += "\\\\~\\\\";
         }
 
-        setEquationString(newString);
+        setEquationString(newStringTemp);
     };
 
     useEffect(() => {
