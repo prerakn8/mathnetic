@@ -166,14 +166,14 @@ const Flow = () => {
 
     let newEdge = null;
 
-    // Given nodeID, handleId, and edges, finds if source handle in use.
+    // Finds if a given handle is the source of any edges
     const isSourceHandleInUse = (nodeId, handleId, edges) => {
       return edges.some(
         (edge) => edge.source === nodeId && edge.sourceHandle === handleId
       ); 
     };
 
-      // Given nodeID, handleId, and edges, finds if target handle in use.
+    // Finds if a given handle is the target of any edges    
     const isTargetHandleInUse = (nodeId, handleId, edges) => {
       return edges.some(
         (edge) => edge.target === nodeId && edge.targetHandle === handleId
@@ -183,7 +183,7 @@ const Flow = () => {
     let isInvalidConnection = null;
 
     if (!lessHorizontalDistance) {
-      const closeNodeIsSource = xDistance < 0; // To the right
+      const closeNodeIsSource = xDistance < 0; // Boolean to determine which node is source based on which one is to the right
 
       newEdge = {                  // Creates an edge. Ternary statements set closest node as source and node as target or vice versa based on "closeNodeIsSource"
         id: closeNodeIsSource 
@@ -269,7 +269,7 @@ const Flow = () => {
       const closeEdge = getClosestEdge(node); // finds closest edge
  
       setEdges((es) => {
-        let nextEdges = es.filter((e) => e.className !== 'temp'); // gets rid of all temp edges
+        const nextEdges = es.filter((e) => e.className !== 'temp'); // gets rid of all temp edges
  
         if (
           closeEdge &&
@@ -296,16 +296,17 @@ const Flow = () => {
             {
               node.data.row = targetNode.data.row; // same row
               node.data.col = targetNode.data.col - 1; // left column
+              node.data.rightNode = targetNode.id;  // set left and right connection
+              targetNode.data.leftNode = node.id;
             }
             else if (closeEdge.targetHandle.endsWith("target2")) {
               node.data.row = targetNode.data.row - 1; // above row ?
               node.data.col = targetNode.data.col; // same column
-              }
+              node.data.upperNode = targetNode.id;  // set upper and lower connection
+              targetNode.data.lowerNode = node.id;
+            }
 
-              // Also set leftNode and rightNode
-              nextEdges = nextEdges.filter((e) => e.source != node.id && e.target != targetNode.id);
-              node.data.rightNode = targetNode.id;
-              targetNode.data.leftNode = node.id;
+
           }
           else
           {
@@ -313,19 +314,22 @@ const Flow = () => {
             node.data.group = sourceNode.data.group;
             if (closeEdge.sourceHandle.endsWith("source1"))
             {
-              node.data.row = sourceNode.data.row; // Same row
+              node.data.row = sourceNode.data.row;     // Same row
               node.data.col = sourceNode.data.col + 1; // Right column
+              node.data.leftNode = sourceNode.id;       // set left and right connection
+              sourceNode.data.rightNode = node.id;
             }
             else if (closeEdge.sourceHandle.endsWith("source2")){
 
               node.data.row = sourceNode.data.row + 1;
               node.data.col = sourceNode.data.col;
-              }
-              nextEdges = nextEdges.filter((e) => e.target != node.id && e.source != sourceNode.id);
-              node.data.leftNode = sourceNode.id;
-              sourceNode.data.rightNode = node.id;
-
+              node.data.lowerNode = targetNode.id;      // set upper and lower connection
+              targetNode.data.upperNode = node.id;
             }
+
+
+
+          }
 
             nextEdges.push(closeEdge); // add closest edge
 
@@ -445,7 +449,7 @@ const Flow = () => {
         type,
         position,
         data: { value: `${latexEq}`, label: `${latexEq}`, 
-                group: groupNum, row: rowNum, col: colNum, leftNode: "", rightNode: "" },
+                group: groupNum, row: rowNum, col: colNum, leftNode: "", rightNode: "" , upperNode: "", lowerNode: ""},
       };
       console.log(groupNum);
       groupNum += 1;
