@@ -37,6 +37,7 @@ import NumericNode from './components/node_types/NumericNode';
 import LaTeXNode from './components/node_types/LaTeXNode';
 import ArithmeticNode from './components/node_types/ArithmeticNode';
 import VariableNode from './components/node_types/VariableNode';
+import NewNode from './components/node_types/NewNode'       //adds newnode
 
 const nodeTypes = {
   numeric: NumericNode,
