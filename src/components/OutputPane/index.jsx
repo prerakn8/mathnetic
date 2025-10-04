@@ -36,80 +36,19 @@ export default (props) => {
         return lineString;
     }
     const updateEquationString = () => {
-        // Some Rows And Columns Might Have A Negative Index
-        // Because Those Nodes Were Placed As A Source to Existing
-        // Nodes. So First, Find the Offset.
-        let startingRowNum = 0;
-        let startingColNum = 0;
         const nodes = getNodes();
 
-        for (let i = 0; i < nodes.length; i++)
-        {
+        const startingNodes = nodes.filter((node) => 
+        (node.type !== 'connector' && node.data.leftNode === '')); 
 
-            if (nodes[i].data.row < startingRowNum)
-            {
-                startingRowNum = nodes[i].data.row;
-            }
-
-            if (nodes[i].data.col < startingColNum)
-            {
-                startingColNum = nodes[i].data.col;
-            }
-        }
-        
-        let node3D = new Array(props.groupNum);
-        for (let i = 0; i < node3D.length; i++)
-        {
-            node3D[i] = new Array(props.rowNum - startingRowNum + 1);
-            for (let j = 0; j < node3D[i].length; j++)
-            {
-                node3D[i][j] = new Array(props.colNum - startingColNum + 1);
-            }
-        }
-
-        for (let i = 0; i < nodes.length; i++)
-        {
-            const currentNode = nodes[i];
-            node3D[currentNode.data.group][currentNode.data.row - startingRowNum][currentNode.data.col - startingColNum] = currentNode;
-        }
-
-        // New System being implemented ----------------------------------------------
-        const startingNodes = nodes.filter((node) => node.data.leftNode === '') // List of all nodes that start a line (nothing to the left of it)
-        let newStringTemp = '' // Different newString to avoid causing errors for now
+        let newString = '';
         for (let i = 0; i < startingNodes.length; i++)
         {
-            newStringTemp += readEquation(startingNodes[i]); 
-            newStringTemp += "\\\\";
-        }
-        // ---------------------------------------------------------------------------
-        
-        let newString = '';
-
-        for (let i = 0; i < node3D.length; i++)
-        {
-            if (node3D[i].flat(Infinity).every(node => node === undefined))
-            {
-                continue; // Skip empty groups
-            }
-
-            for (let j = 0; j < node3D[0].length; j++)
-            {
-                for (let k = 0; k < node3D[0][0].length; k++)
-                {
-                    if (node3D[i][j][k] !== undefined)
-                    {
-                        newString += node3D[i][j][k].data.value;
-                    }     
-                }
-                if (j < node3D[0].length - 1)
-                {
-                    newString += "\\\\";
-                }
-            }
-            newString += "\\\\~\\\\";
+            newString += readEquation(startingNodes[i]); 
+            newString += "\\\\";
         }
 
-        setEquationString(newStringTemp);
+        setEquationString(newString);
     };
 
     useEffect(() => {

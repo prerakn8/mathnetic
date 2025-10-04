@@ -33,18 +33,24 @@ import ContextMenu from './components/ContextMenu';
 import { TypeProvider, useType } from './components/context/TypeContext';
 import { LatexEqProvider, useLatexEq } from './components/context/LatexEqContext';
 
-import NumericNode from './components/node_types/NumericNode';
+import NumericNode from './components/node_types/NumericNode';      // All node types
 import LaTeXNode from './components/node_types/LaTeXNode';
 import ArithmeticNode from './components/node_types/ArithmeticNode';
 import VariableNode from './components/node_types/VariableNode';
-import NewNode from './components/node_types/NewNode'       //adds newnode
+import NewNode from './components/node_types/NewNode';
+import VerticalConnector from './components/node_types/VerticalConnector';
 
 const nodeTypes = {
   numeric: NumericNode,
   latex: LaTeXNode,
   arithmetic: ArithmeticNode,
-  variable: VariableNode
-}
+  variable: VariableNode,
+  test: NewNode,
+  connector: VerticalConnector
+};
+
+const upperConnectionTypes = ['test'];      // Keep track of which types need upper and lower connections
+const lowerConnectionTypes = ['test'];
 
 // Variables to Track How Nodes Are Arranged
 let groupNum = 0;
@@ -450,9 +456,32 @@ const Flow = () => {
         type,
         position,
         data: { value: `${latexEq}`, label: `${latexEq}`, 
-                group: groupNum, row: rowNum, col: colNum, leftNode: '', rightNode: '', upperNode: '', lowerNode: ''},
+                group: groupNum, row: rowNum, col: colNum, 
+                leftNode: '', rightNode: '', upperNode: '', lowerNode: '',
+                connectors: {upper: '', lower: ''}
+              }
       };
-      console.log(groupNum);
+      
+      if (upperConnectionTypes.includes(newNode.type))
+      {
+          const connectorPosition = screenToFlowPosition({
+              x: event.clientX - 20,
+              y: event.clientY - 30
+          });
+
+          const newConnector = 
+          {
+              id: getId(),
+              type: 'connector',
+              position: connectorPosition,
+              data: {value: `${latexEq}`, origin: newNode.id, rightNode: '',
+                    group: newNode.group, row: newNode.row - 1, col: newNode.col}
+          };
+
+          setNodes((nds) => nds.concat(newConnector)); 
+          newNode.data.connectors.upper = newConnector.id;
+      }
+      
       groupNum += 1;
 
       setNodes((nds) => nds.concat(newNode));   // Adds new node to nodes
