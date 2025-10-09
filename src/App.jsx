@@ -464,10 +464,7 @@ const Flow = () => {
       
       if (upperConnectionTypes.includes(newNode.type))
       {
-          const connectorPosition = screenToFlowPosition({
-              x: event.clientX - 20,
-              y: event.clientY - 30
-          });
+          const connectorPosition = {x: newNode.position.x-20, y:newNode.position.y-30}
 
           const newConnector = 
           {
@@ -479,6 +476,24 @@ const Flow = () => {
           };
 
           setNodes((nds) => nds.concat(newConnector)); 
+          newNode.data.connectors.upper = newConnector.id;
+      }
+
+      if (lowerConnectionTypes.includes(newNode.type)) {
+          const connectorPosition = { x: newNode.position.x - 20, y: newNode.position.y + 50 }
+
+          const newConnector =
+          {
+              id: getId(),
+              type: 'connector',
+              position: connectorPosition,
+              data: {
+                  value: `${latexEq}`, origin: newNode.id, rightNode: '',
+                  group: newNode.group, row: newNode.row - 1, col: newNode.col
+              }
+          };
+
+          setNodes((nds) => nds.concat(newConnector));
           newNode.data.connectors.upper = newConnector.id;
       }
       
