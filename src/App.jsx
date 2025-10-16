@@ -39,6 +39,7 @@ import ArithmeticNode from './components/node_types/ArithmeticNode';
 import VariableNode from './components/node_types/VariableNode';
 import NewNode from './components/node_types/NewNode';
 import VerticalConnector from './components/node_types/VerticalConnector';
+import ExponentNode from './components/node_types/ExponentNode';
 
 const nodeTypes = {
   numeric: NumericNode,
@@ -46,7 +47,8 @@ const nodeTypes = {
   arithmetic: ArithmeticNode,
   variable: VariableNode,
   test: NewNode,
-  connector: VerticalConnector
+    connector: VerticalConnector,
+  exponent: ExponentNode
 };
 
 const upperConnectionTypes = ['test'];      // Keep track of which types need upper and lower connections
@@ -92,8 +94,9 @@ const Flow = () => {
   );
  
   // Close the context menu if it's open whenever the window is clicked.
-  const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
+    const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
 
+  const onNodeClick = useCallback((), [])
   // Handles deleting an edge by connecting the incomers and outgoers and deleting edges to the nodes
   const onNodesDelete = useCallback((deleted) => 
     {
@@ -451,6 +454,24 @@ const Flow = () => {
         y: event.clientY,
       });
 
+     if (type == 'exponent')
+          {
+          const exponentNode = {
+              id: getId(),
+              type,
+              position,
+              data: {
+                  value: `${latexEq}`, label: `${latexEq}`,
+                  group: groupNum, row: rowNum, col: colNum
+              },
+          
+          }
+
+          exponentNode.onNodeClick = useCallback()
+
+
+      }
+
       const newNode = {                                 // Creates new node using position and contexts                          
         id: getId(),
         type,
@@ -502,7 +523,8 @@ const Flow = () => {
       setNodes((nds) => nds.concat(newNode));   // Adds new node to nodes
     },
     [screenToFlowPosition, type, latexEq],      // dependencies for UseCallback()
-  );
+    );
+
 
   const onDragStart = (event, nodeType, nodeLatexEq) => { 
     setType(nodeType);                                     

@@ -100,6 +100,10 @@ export default () => {
           <div className="dndnode" onDragStart={(event) => onDragStart(event, 'test', '-')} draggable>
               <InlineMath>-</InlineMath>
           </div>
+
+          <div className="dndnode" onDragStart={(event) => onDragStart(event, 'exponent', '2')} draggable>
+              <InlineMath>-</InlineMath>
+          </div>
       
     </aside>
   );
