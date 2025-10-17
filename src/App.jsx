@@ -71,6 +71,7 @@ const Flow = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [menu, setMenu] = useState(null);
   const ref = useRef(null);
+  let lastClicked = useRef(null);
   const reactFlowInstance = useReactFlow();
 
   const onNodeContextMenu = useCallback(
@@ -96,7 +97,17 @@ const Flow = () => {
   // Close the context menu if it's open whenever the window is clicked.
     const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
 
-  const onNodeClick = useCallback((), [])
+    const onNodeClick = useCallback((event, node) => {
+        if (lastClicked.type == 'exponent' && (node.type == "numeric" || node.type == "variable")) {
+            lastClicked.position.x = node.position.x + 50;
+            lastClicked.position.y = node.position.y - 25;
+            node.data.exponentConnection = lastClicked.id;
+            console.log("lol");
+        }
+        lastClicked = node;
+        
+    }, []);
+
   // Handles deleting an edge by connecting the incomers and outgoers and deleting edges to the nodes
   const onNodesDelete = useCallback((deleted) => 
     {
@@ -454,31 +465,13 @@ const Flow = () => {
         y: event.clientY,
       });
 
-     if (type == 'exponent')
-          {
-          const exponentNode = {
-              id: getId(),
-              type,
-              position,
-              data: {
-                  value: `${latexEq}`, label: `${latexEq}`,
-                  group: groupNum, row: rowNum, col: colNum
-              },
-          
-          }
-
-          exponentNode.onNodeClick = useCallback()
-
-
-      }
-
       const newNode = {                                 // Creates new node using position and contexts                          
         id: getId(),
         type,
         position,
         data: { value: `${latexEq}`, label: `${latexEq}`, 
                 group: groupNum, row: rowNum, col: colNum, 
-                leftNode: '', rightNode: '', upperNode: '', lowerNode: '',
+                leftNode: '', rightNode: '', upperNode: '', lowerNode: '', exponentConnection: '',
                 connectors: {upper: '', lower: ''}
               }
       };
@@ -548,6 +541,7 @@ const Flow = () => {
           onEdgesChange={onEdgesChange}
           onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
+          onNodeClick = {onNodeClick}
           onDrop={onDrop}
           onDragStart={onDragStart}
           onDragOver={onDragOver}
