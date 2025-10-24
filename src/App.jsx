@@ -73,7 +73,19 @@ const Flow = () => {
   const ref = useRef(null);
   let lastClicked = useRef(null);
   const reactFlowInstance = useReactFlow();
+  const {getNode} = useReactFlow();
 
+      
+  const moveNode = (nodeId, newX, newY) => {
+    setNodes((nds) =>
+        nds.map((node) => {
+            if (node.id === nodeId) {
+                return { ...node, position: { x: newX, y: newY } };
+            }
+            return node;
+        })
+    );
+  };
   const onNodeContextMenu = useCallback(
     (event, node) => {
       // Prevent native context menu from showing
@@ -98,14 +110,29 @@ const Flow = () => {
     const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
 
     const onNodeClick = useCallback((event, node) => {
-        if (lastClicked.type == 'exponent' && (node.type == "numeric" || node.type == "variable")) {
+        if (lastClicked.type == 'exponent' && (node.type == "numeric" || node.type == "variable")) {    //  changing/setting exponent node location and data
+
+
+
+        setNodes((nds) =>   //sidd did it ask him what it means
+            nds.map((node) => {
+                if (node.data.exponentConnection == lastClicked.id) {
+                    return { ...node, data: {...node.data, exponentConnection: ''} }; //... means 
+                }
+            console.log(node.id + " " + node.exponentConnection);
+            return node;
+        })
+            );
+
             lastClicked.position.x = node.position.x + 50;
             lastClicked.position.y = node.position.y - 25;
             node.data.exponentConnection = lastClicked.id;
-            console.log("lol");
+            console.log(node.data.exponentConnection + " set to the exponent of " + node.id);
+            
         }
+
         lastClicked = node;
-        
+        console.log(node.id);
     }, []);
 
   // Handles deleting an edge by connecting the incomers and outgoers and deleting edges to the nodes
@@ -260,6 +287,12 @@ const Flow = () => {
 
   const onNodeDrag = useCallback(
     (_, node) => {
+        if (node.data.exponentConnection != '')   //moving exponent nodes with its coefficient
+        {
+            console.log("moving node " + node.data.exponentConnection + " with " + node.id)
+            moveNode(node.data.exponentConnection, node.position.x + 50, node.position.y - 25);
+        }
+
       const closeEdge = getClosestEdge(node); // Finds closest edge
  
       setEdges((es) => {
