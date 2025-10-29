@@ -112,27 +112,26 @@ const Flow = () => {
     const onNodeClick = useCallback((event, node) => {
         if (lastClicked.type == 'exponent' && (node.type == "numeric" || node.type == "variable")) {    //  changing/setting exponent node location and data
 
-
-
-        setNodes((nds) =>   //sidd did it ask him what it means
-            nds.map((node) => {
-                if (node.data.exponentConnection == lastClicked.id) {
-                    return { ...node, data: {...node.data, exponentConnection: ''} }; //... means 
-                }
-            console.log(node.id + " " + node.exponentConnection);
-            return node;
-        })
+            setNodes((nds) =>   //this basically runs through every node and sets its exponentConnection to an empty string
+                nds.map((node) => {
+                    console.log("Node: " + node.id + "    ExponentConnection: " + node.data.exponentConnection + "      LastClickedExponent: " + lastClicked.data.exponentConnection);
+                    if (node.data.exponentConnection == lastClicked.data.exponentConnection && node.id != lastClicked.id) {
+                        console.log("removed exponentConnection from " + node.id + ". exponentConnection: " + node.exponentConnection);
+                        return { ...node, data: {...node.data, exponentConnection: ''} };
+                    }
+                    return node;
+                })
             );
 
             lastClicked.position.x = node.position.x + 50;
             lastClicked.position.y = node.position.y - 25;
             node.data.exponentConnection = lastClicked.id;
-            console.log(node.data.exponentConnection + " set to the exponent of " + node.id);
+            console.log(node.data.exponentConnection + " set to the exponent of " + node.id);       //i do not have the slightest idea as to why this doesnt work
             
         }
 
         lastClicked = node;
-        console.log(node.id);
+
     }, []);
 
   // Handles deleting an edge by connecting the incomers and outgoers and deleting edges to the nodes
@@ -228,50 +227,65 @@ const Flow = () => {
       );
     };
 
+    const handleExists = (node, handleSuffix) => {
+        if (node.handles) {
+            return node.handles.some((h) => {
+            return h.id.endsWith(handleSuffix);
+            });
+        }
+        return false;
+    }
+
     let isInvalidConnection = null;
 
     if (!lessHorizontalDistance) {
-      const closeNodeIsSource = xDistance < 0; // Boolean to determine which node is source based on which one is to the right
+        const closeNodeIsSource = xDistance < 0; // Boolean to determine which node is source based on which one is to the right
 
-      newEdge = {                  // Creates an edge. Ternary statements set closest node as source and node as target or vice versa based on "closeNodeIsSource"
-        id: closeNodeIsSource 
-            ? `${closestNode.node.id}-${node.id}`
-            : `${node.id}-${closestNode.node.id}`,
-        source: closeNodeIsSource ? closestNode.node.id : node.id,
-        sourceHandle: closeNodeIsSource ? `${closestNode.node.id}_source1` : `${node.id}_source1`,
-        targetHandle: closeNodeIsSource ? `${node.id}_target1` : `${closestNode.node.id}_target1`,
-        target: closeNodeIsSource ? node.id : closestNode.node.id,
-      }
+        if ((closeNodeIsSource && handleExists(closestNode, "_source1") && handleExists(node, "_target1")) ||
+            (!closeNodeIsSource && handleExists(closestNode, "_target1") && handleExists(node, "_source1"))) {
 
-      if (closeNodeIsSource)        // Error handling by checking if the correct handles on the closest node are connected to the new edge
-      {
-          isInvalidConnection = isSourceHandleInUse(closestNode.node.id, newEdge.sourceHandle, edges);
-      }
-      else {
-        isInvalidConnection = isTargetHandleInUse(closestNode.node.id, newEdge.targetHandle, edges);
-      }
+            newEdge = {                  // Creates an edge. Ternary statements set closest node as source and node as target or vice versa based on "closeNodeIsSource"
+                id: closeNodeIsSource
+                    ? `${closestNode.node.id}-${node.id}`
+                    : `${node.id}-${closestNode.node.id}`,
+                source: closeNodeIsSource ? closestNode.node.id : node.id,
+                sourceHandle: closeNodeIsSource ? `${closestNode.node.id}_source1` : `${node.id}_source1`,
+                targetHandle: closeNodeIsSource ? `${node.id}_target1` : `${closestNode.node.id}_target1`,
+                target: closeNodeIsSource ? node.id : closestNode.node.id,
+            }
 
+            if (closeNodeIsSource)        // Error handling by checking if the correct handles on the closest node are connected to the new edge
+            {
+                isInvalidConnection = isSourceHandleInUse(closestNode.node.id, newEdge.sourceHandle, edges);
+            }
+            else {
+                isInvalidConnection = isTargetHandleInUse(closestNode.node.id, newEdge.targetHandle, edges);
+            }
+        }
     }
+
     else {                                      // Vertical connections (identical, but with x and y swapped and different corresponding handles)
-      const closeNodeIsSource = yDistance < 0;
+        const closeNodeIsSource = yDistance < 0;
 
-      newEdge = {
-        id: closeNodeIsSource 
-        ? `${closestNode.node.id}-${node.id}`
-        : `${node.id}-${closestNode.node.id}`,
-        source: closeNodeIsSource ? closestNode.node.id : node.id,
-        sourceHandle: closeNodeIsSource ? `${closestNode.node.id}_source2` : `${node.id}_source2`,
-        targetHandle: closeNodeIsSource ? `${node.id}_target2` : `${closestNode.node.id}_target2`,
-        target: closeNodeIsSource ? node.id : closestNode.node.id,
-      }
+        if ((closeNodeIsSource && handleExists(closestNode, "_source2") && handleExists(node, "_target2")) ||
+            (!closeNodeIsSource && handleExists(closestNode, "_target2") && handleExists(node, "_source2"))) {
+            newEdge = {
+                id: closeNodeIsSource
+                    ? `${closestNode.node.id}-${node.id}`
+                    : `${node.id}-${closestNode.node.id}`,
+                source: closeNodeIsSource ? closestNode.node.id : node.id,
+                sourceHandle: closeNodeIsSource ? `${closestNode.node.id}_source2` : `${node.id}_source2`,
+                targetHandle: closeNodeIsSource ? `${node.id}_target2` : `${closestNode.node.id}_target2`,
+                target: closeNodeIsSource ? node.id : closestNode.node.id,
+            }
 
-      if (closeNodeIsSource)
-      {
-        isInvalidConnection = isSourceHandleInUse(closestNode.node.id, newEdge.sourceHandle, edges);
-      }
-      else {
-        isInvalidConnection = isTargetHandleInUse(closestNode.node.id, newEdge.targetHandle, edges);
-      }
+            if (closeNodeIsSource) {
+                isInvalidConnection = isSourceHandleInUse(closestNode.node.id, newEdge.sourceHandle, edges);
+            }
+            else {
+                isInvalidConnection = isTargetHandleInUse(closestNode.node.id, newEdge.targetHandle, edges);
+            }
+        }
     }
 
 
