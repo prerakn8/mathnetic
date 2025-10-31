@@ -54,6 +54,11 @@ const nodeTypes = {
 const upperConnectionTypes = ['test'];      // Keep track of which types need upper and lower connections
 const lowerConnectionTypes = ['test'];
 
+const source1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test','connector'];
+const target1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test',];
+const source2Types = ['numeric', 'latex', 'arithmetic', 'variable'];
+const target2Types = ['numeric', 'latex', 'arithmetic', 'variable'];
+
 // Variables to Track How Nodes Are Arranged
 let groupNum = 0;
 let rowNum = 0;
@@ -229,21 +234,25 @@ const Flow = () => {
     };
 
     const handleExists = (node, handleSuffix) => {
-        if (node.handles) {
-            return node.handles.some((h) => {
-            return h.id.endsWith(handleSuffix);
-            });
-        }
+        if (handleSuffix == "_source1")
+            return source1Types.includes(node.type);
+        if (handleSuffix == "_source2")
+            return source2Types.includes(node.type);
+        if (handleSuffix == "_target1")
+            return target1Types.includes(node.type);
+        if (handleSuffix == "_target2")
+            return target2Types.includes(node.type);
         return false;
     }
+    
 
     let isInvalidConnection = null;
 
     if (!lessHorizontalDistance) {
         const closeNodeIsSource = xDistance < 0; // Boolean to determine which node is source based on which one is to the right
 
-        if ((closeNodeIsSource && handleExists(closestNode, "_source1") && handleExists(node, "_target1")) ||
-            (!closeNodeIsSource && handleExists(closestNode, "_target1") && handleExists(node, "_source1"))) {
+        if ((closeNodeIsSource && handleExists(closestNode.node, "_source1") && handleExists(node, "_target1")) ||
+            (!closeNodeIsSource && handleExists(closestNode.node, "_target1") && handleExists(node, "_source1"))) {
 
             newEdge = {                  // Creates an edge. Ternary statements set closest node as source and node as target or vice versa based on "closeNodeIsSource"
                 id: closeNodeIsSource
@@ -268,8 +277,8 @@ const Flow = () => {
     else {                                      // Vertical connections (identical, but with x and y swapped and different corresponding handles)
         const closeNodeIsSource = yDistance < 0;
 
-        if ((closeNodeIsSource && handleExists(closestNode, "_source2") && handleExists(node, "_target2")) ||
-            (!closeNodeIsSource && handleExists(closestNode, "_target2") && handleExists(node, "_source2"))) {
+        if ((closeNodeIsSource && handleExists(closestNode.node, "_source2") && handleExists(node, "_target2")) ||
+            (!closeNodeIsSource && handleExists(closestNode.node, "_target2") && handleExists(node, "_source2"))) {
             newEdge = {
                 id: closeNodeIsSource
                     ? `${closestNode.node.id}-${node.id}`
@@ -290,10 +299,10 @@ const Flow = () => {
     }
 
 
-    //if (isInvalidConnection)
-    //{
-    //  return null;
-    //}
+    if (isInvalidConnection)
+    {
+      return null;
+    }
 
     return newEdge;                     // Returns newly created edge
 
@@ -307,12 +316,17 @@ const Flow = () => {
             moveNode(node.data.exponentConnection, node.position.x + 50, node.position.y - 25);
         }
 
-        if (node.type == 'test')
+        if (upperConnectionTypes.includes(node.type))
         {
-            console.log(node.id + " " + node.data.connectors.lower);
+            //console.log(node.id + " " + node.data.connectors.lower);
             moveNode(node.data.connectors.upper, node.position.x - 20, node.position.y - 30);
+        }
+
+        if (lowerConnectionTypes.includes(node.type))
+        {
             moveNode(node.data.connectors.lower, node.position.x - 20, node.position.y + 50);
         }
+         
 
       const closeEdge = getClosestEdge(node); // Finds closest edge
  
@@ -562,7 +576,7 @@ const Flow = () => {
           };
 
           setNodes((nds) => nds.concat(newConnector));
-          newNode.data.connectors.upper = newConnector.id;
+          newNode.data.connectors.lower = newConnector.id;
       }
       
       groupNum += 1;
