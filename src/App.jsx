@@ -112,7 +112,8 @@ const Flow = () => {
     const onNodeClick = useCallback((event, node) => {
         if (lastClicked.type == 'exponent' && (node.type == "numeric" || node.type == "variable")) {    //  changing/setting exponent node location and data
 
-            setNodes((nds) =>   //this basically runs through every node and sets its exponentConnection to an empty string
+            setNodes((nds) =>   //this basically runs through every node and sets its exponentConnection to an empty string except for the one that just got connected
+                                    //(this is really weird so dont touch)
                 nds.map((node) => {
                     console.log("Node: " + node.id + "    ExponentConnection: " + node.data.exponentConnection + "      LastClickedExponent: " + lastClicked.data.exponentConnection);
                     if (node.data.exponentConnection == lastClicked.data.exponentConnection && node.id != lastClicked.id) {
@@ -303,8 +304,14 @@ const Flow = () => {
     (_, node) => {
         if (node.data.exponentConnection != '')   //moving exponent nodes with its coefficient
         {
-            console.log("moving node " + node.data.exponentConnection + " with " + node.id)
             moveNode(node.data.exponentConnection, node.position.x + 50, node.position.y - 25);
+        }
+
+        if (node.type == 'test')
+        {
+            console.log(node.id + " " + node.data.connectors.lower);
+            moveNode(node.data.connectors.upper, node.position.x - 20, node.position.y - 30);
+            moveNode(node.data.connectors.lower, node.position.x - 20, node.position.y + 50);
         }
 
       const closeEdge = getClosestEdge(node); // Finds closest edge
