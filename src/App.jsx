@@ -78,7 +78,7 @@ const Flow = () => {
   const ref = useRef(null);
   let lastClicked = useRef(null);
   const reactFlowInstance = useReactFlow();
-  const {getNode} = useReactFlow();
+  const {getNode, deleteElements} = useReactFlow();
 
       
   const moveNode = (nodeId, newX, newY) => {
@@ -141,8 +141,13 @@ const Flow = () => {
     }, []);
 
   // Handles deleting an edge by connecting the incomers and outgoers and deleting edges to the nodes
-  const onNodesDelete = useCallback((deleted) => 
-    {
+    const onNodesDelete = useCallback((deleted) => {
+        deleted.forEach((nd) => {
+            if (nd.data.connectors.upper != '')
+                deleteElements({ nodes: [{ id: nd.data.connectors.upper }] });
+            if (nd.data.connectors.lower != '')
+                deleteElements({ nodes: [{ id: nd.data.connectors.lower }] });
+        });
       setEdges(deleted.reduce((acc, node) => 
         {
           const incomers = getIncomers(node, nodes, edges);         // Source nodes of current node
@@ -153,15 +158,15 @@ const Flow = () => {
             (edge) => !connectedEdges.includes(edge),
           );
 
-          const createdEdges = incomers.flatMap(({ id: source }) => 
-            outgoers.map(({ id: target }) => ({
-              id: `${source}->${target}`,
-              source,
-              sourceHandle: connectedEdges[0].sourceHandle,        
-              target,
-              targetHandle: connectedEdges[0].targetHandle,
-            })),
-          );
+          //const createdEdges = incomers.flatMap(({ id: source }) => 
+          //  outgoers.map(({ id: target }) => ({
+          //    id: `${source}->${target}`,
+          //    source,
+          //    sourceHandle: connectedEdges[0].sourceHandle,        
+          //    target,
+          //    targetHandle: connectedEdges[0].targetHandle,
+          //  })),
+          /*);*/
 
           return [...remainingEdges];
         }, edges),
@@ -553,8 +558,11 @@ const Flow = () => {
               id: getId(),
               type: 'connector',
               position: connectorPosition,
+              draggable: false,
+              deletable: false,
               data: {value: `${latexEq}`, origin: newNode.id, rightNode: '',
                     group: newNode.group, row: newNode.row - 1, col: newNode.col}
+
           };
 
           setNodes((nds) => nds.concat(newConnector)); 
@@ -569,6 +577,8 @@ const Flow = () => {
               id: getId(),
               type: 'connector',
               position: connectorPosition,
+              draggable: false,
+              deletable: false,
               data: {
                   value: `${latexEq}`, origin: newNode.id, rightNode: '',
                   group: newNode.group, row: newNode.row - 1, col: newNode.col
