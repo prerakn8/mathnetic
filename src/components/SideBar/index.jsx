@@ -89,21 +89,22 @@ export default () => {
       </div>
       <div className="dndnode" onDragStart={(event) => onDragStart(event, 'variable', 'z')} draggable>
         <InlineMath>z</InlineMath>
-          </div>
+      </div>
       <div className="dndnode" onDragStart={(event) => onDragStart(event, 'numeric', '.')} draggable>
-              <InlineMath>.</InlineMath>
+        <InlineMath>.</InlineMath>
+      </div>
+      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'numeric', '.')} draggable>
+        <InlineMath>.</InlineMath>
+      </div>
+      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'test', '-')} draggable>
+        <InlineMath>-</InlineMath>
+      </div>
+      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'exponent', '2')} draggable>
+        <InlineMath>-</InlineMath>
           </div>
-        <div className="dndnode" onDragStart={(event) => onDragStart(event, 'numeric', '.')} draggable>
-              <InlineMath>.</InlineMath>
-          </div>
-
-          <div className="dndnode" onDragStart={(event) => onDragStart(event, 'test', '-')} draggable>
-              <InlineMath>-</InlineMath>
-          </div>
-
-          <div className="dndnode" onDragStart={(event) => onDragStart(event, 'exponent', '2')} draggable>
-              <InlineMath>-</InlineMath>
-          </div>
+      <div className="dndnode" onDragStart={(event) => onDragStart(event, 'fraction', 'F')} draggable>
+        <InlineMath>f</InlineMath>
+      </div>
       
     </aside>
   );

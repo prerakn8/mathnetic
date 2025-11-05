@@ -40,6 +40,7 @@ import VariableNode from './components/node_types/VariableNode';
 import NewNode from './components/node_types/NewNode';
 import VerticalConnector from './components/node_types/VerticalConnector';
 import ExponentNode from './components/node_types/ExponentNode';
+import FractionNode from './components/node_types/FractionNode';
 
 const nodeTypes = {
   numeric: NumericNode,
@@ -47,8 +48,9 @@ const nodeTypes = {
   arithmetic: ArithmeticNode,
   variable: VariableNode,
   test: NewNode,
-    connector: VerticalConnector,
-  exponent: ExponentNode
+  connector: VerticalConnector,
+  exponent: ExponentNode,
+  fraction: FractionNode
 };
 
 const upperConnectionTypes = ['test'];      // Keep track of which types need upper and lower connections
@@ -142,16 +144,37 @@ const Flow = () => {
 
   // Handles deleting an edge by connecting the incomers and outgoers and deleting edges to the nodes
     const onNodesDelete = useCallback((deleted) => {
-        deleted.forEach((nd) => {
-            if (nd.data.connectors.upper != '')
+        deleted.forEach((nd) => {                               //for each node(nd)
+            if (nd.type == 'connector')                         // Skips if the node is a connector (this would cause an error)
+                return;
+            if (nd.data.connectors.upper != '')                 // Deletes connectors to a node
                 deleteElements({ nodes: [{ id: nd.data.connectors.upper }] });
             if (nd.data.connectors.lower != '')
                 deleteElements({ nodes: [{ id: nd.data.connectors.lower }] });
+
+
+            setNodes((nds) =>   
+                nds.filter((node) => {
+                    return !(node === nd || (node.type == 'connector' && node.data.origin == nd.id));
+                })
+            );
         });
+
+        deleted.forEach((nd) => {
+            if (source1Types.includes(nd.type) && nd.rightConnection != '')
+                getNode(id).leftConnection = '';
+            if (source2Types.includes(nd.type) && nd.leftConnection != '')
+                getNode(id).rightConnection = '';
+            if (target2Types.includes(nd.type) && nd.upperConnection != '')
+                getNode(id).lowerConnection = '';
+            if (target1Types.includes(nd.type) && nd.lowerConnection != '')
+                getNode(id).upperConnection = '';
+        });
+
       setEdges(deleted.reduce((acc, node) => 
         {
-          const incomers = getIncomers(node, nodes, edges);         // Source nodes of current node
-          const outgoers = getOutgoers(node, nodes, edges);         // Target nodes of current node
+          //const incomers = getIncomers(node, nodes, edges);         // Source nodes of current node
+          //const outgoers = getOutgoers(node, nodes, edges);         // Target nodes of current node
           const connectedEdges = getConnectedEdges([node], edges);  // All edges that are connected to the node (source or target)
 
           const remainingEdges = acc.filter(                             
