@@ -30,6 +30,7 @@ export default (props) => {
                 lineString += currentNode.data.value;
             }
 
+
             currentNode = getNode(currentNode.data.rightNode) // Goes to right node by id
         }  
 

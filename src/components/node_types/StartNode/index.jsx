@@ -4,15 +4,13 @@ import CustomHandle from '../../CustomHandle';
 import 'katex/dist/katex.min.css'
 import { InlineMath } from 'react-katex';
 
-function FractionNode(props) {
+function StartNode(props) {
 
   return (
-    <div className="fraction-node">
-      <CustomHandle id={props.id + "_target1"} type="target" position={Position.Left} connectionCount={1} />
-      <InlineMath>{props.data.value}</InlineMath>
+    <div className="start-node">
       <CustomHandle id={props.id + "_source1"} type="source" position={Position.Right} connectionCount={1} />
     </div>
   );
 }
  
-export default FractionNode;
+export default StartNode;

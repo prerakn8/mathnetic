@@ -41,6 +41,7 @@ import NewNode from './components/node_types/NewNode';
 import VerticalConnector from './components/node_types/VerticalConnector';
 import ExponentNode from './components/node_types/ExponentNode';
 import FractionNode from './components/node_types/FractionNode';
+import StartNode from './components/node_types/StartNode';
 
 const nodeTypes = {
   numeric: NumericNode,
@@ -50,14 +51,15 @@ const nodeTypes = {
   test: NewNode,
   connector: VerticalConnector,
   exponent: ExponentNode,
-  fraction: FractionNode
+  fraction: FractionNode,
+  start: StartNode
 };
 
-const upperConnectionTypes = ['test'];      // Keep track of which types need upper and lower connections
-const lowerConnectionTypes = ['test'];
+const upperConnectionTypes = ['test', 'fraction'];      // Keep track of which types need upper and lower connections
+const lowerConnectionTypes = ['test', 'fraction'];
 
-const source1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test','connector'];
-const target1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test',];
+const source1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test','connector', 'fraction', 'start'];
+const target1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test', 'fraction'];
 const source2Types = ['numeric', 'latex', 'arithmetic', 'variable'];
 const target2Types = ['numeric', 'latex', 'arithmetic', 'variable'];
 
