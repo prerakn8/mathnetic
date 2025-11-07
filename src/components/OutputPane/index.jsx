@@ -29,6 +29,26 @@ export default (props) => {
             {
                 lineString += currentNode.data.value;
             }
+            if (currentNode.type === 'fraction')
+            {
+                let numerator = '0';
+                if (readEquation(currentNode.data.connectors.upper))
+                {
+                    numerator = readEquation(currentNode.data.connectors.upper);
+                }
+
+                let denominator = '0';
+                if (readEquation(currentNode.data.connectors.lower))
+                {
+                    denominator = readEquation(currentNode.data.connectors.lower);
+                }
+
+                lineString += '\\frac{'+numerator+'}{'+denominator+'}';
+            }
+            if (currentNode.type === 'connector')
+            {
+                lineString += "(";
+            }
 
 
             currentNode = getNode(currentNode.data.rightNode) // Goes to right node by id
@@ -40,7 +60,11 @@ export default (props) => {
         const nodes = getNodes();
 
         const startingNodes = nodes.filter((node) => 
-        (node.type !== 'connector' && node.data.leftNode === '')); 
+            (node.type === 'start' && node.data.rightNode != '')); 
+
+        startingNodes.sort((node1, node2) => {
+            return node1.position.y - node2.position.y;
+        });
 
         let newString = '';
         for (let i = 0; i < startingNodes.length; i++)

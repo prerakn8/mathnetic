@@ -8,6 +8,7 @@ function StartNode(props) {
 
   return (
     <div className="start-node">
+      <InlineMath>{props.data.value}</InlineMath>
       <CustomHandle id={props.id + "_source1"} type="source" position={Position.Right} connectionCount={1} />
     </div>
   );
