@@ -31,27 +31,20 @@ export default (props) => {
             }
             if (currentNode.type === 'fraction')
             {
-                let numerator = '0';
-                if (readEquation(currentNode.data.connectors.upper))
-                {
-                    numerator = readEquation(currentNode.data.connectors.upper);
-                }
+                const numerator = readEquation(getNode(currentNode.data.connectors.upper));
+                const denominator = readEquation(getNode(currentNode.data.connectors.lower));
 
-                let denominator = '0';
-                if (readEquation(currentNode.data.connectors.lower))
-                {
-                    denominator = readEquation(currentNode.data.connectors.lower);
-                }
-
-                lineString += '\\frac{'+numerator+'}{'+denominator+'}';
+                if (!(numerator && denominator))
+                    return '';
+                lineString += '\\frac{' + numerator + '}{'+denominator+'}';
             }
-            if (currentNode.type === 'connector')
-            {
-                lineString += "(";
-            }
+            //if (currentNode.type === 'connector')
+            //{
+            //    lineString += "(";
+            //}
 
+            currentNode = getNode(currentNode.data.rightNode); // Goes to right node by id
 
-            currentNode = getNode(currentNode.data.rightNode) // Goes to right node by id
         }  
 
         return lineString;
