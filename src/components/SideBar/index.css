@@ -1,3 +1,7 @@
 .sidebar {
     overflow: scroll;
 }
+
+.dndnode {
+    height: 100px;
+}

@@ -74,7 +74,11 @@ const getId = () => `dndnode_${id++}`;
 
 // Proximity Connection Variables
 const MIN_DISTANCE = 200;
- 
+
+// connector node distances
+const LOWER_POSITION_REL = { x: -20, y: 50 };
+const UPPER_POSITION_REL = { x: -20, y: -30 };
+const EXP_POSITION_REL = {x: 50, y: -25}
 const Flow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -124,9 +128,7 @@ const Flow = () => {
             setNodes((nds) =>   //this basically runs through every node and sets its exponentConnection to an empty string except for the one that just got connected
                                     //(this is really weird so dont touch)
                 nds.map((node) => {
-                    console.log("Node: " + node.id + "    ExponentConnection: " + node.data.exponentConnection + "      LastClickedExponent: " + lastClicked.data.exponentConnection);
                     if (node.data.exponentConnection == lastClicked.data.exponentConnection && node.id != lastClicked.id) {
-                        console.log("removed exponentConnection from " + node.id + ". exponentConnection: " + node.exponentConnection);
                         return { ...node, data: {...node.data, exponentConnection: ''} };
                     }
                     return node;
@@ -136,7 +138,6 @@ const Flow = () => {
             lastClicked.position.x = node.position.x + 50;
             lastClicked.position.y = node.position.y - 25;
             node.data.exponentConnection = lastClicked.id;
-            console.log(node.data.exponentConnection + " set to the exponent of " + node.id);       //i do not have the slightest idea as to why this doesnt work
             
         }
 
@@ -212,11 +213,17 @@ const Flow = () => {
     const { nodeLookup } = store.getState();
     const internalNode = getInternalNode(node.id); // Node being used
 
+      const validNodes = Array.from(nodeLookup.values()).filter(n => {
+          if (n.type === 'connector') {
+              return n.origin === internalNode.id || n.internals.positionAbsolute.x > internalNode.internals.positionAbsolute.x;
+          }       //^^makes sure that a connector node doesnt try to connect to its linked fraction node
+          return n.id !== internalNode.id;
+      })
 
     // Creates an object that stores the closest node and its distance from node
-    const closestNode = Array.from(nodeLookup.values()).reduce(    // Essentially iterates through array of nodes with the function, transferring the previous res each time
-      (res, n) => {                                                // res holds the closest node and its distance at any point during the iteration, n is the current node
-        if (n.id !== internalNode.id) {    // Skips over internal node when iterating through the nodes                      
+      const closestNode = validNodes.reduce(    // Essentially iterates through array of nodes with the function, transferring the previous res each time
+          (res, n) => {
+          // res holds the closest node and its distance at any point during the iteration, n is the current node
           const dx = n.internals.positionAbsolute.x - internalNode.internals.positionAbsolute.x; // Finding distance
           const dy = n.internals.positionAbsolute.y - internalNode.internals.positionAbsolute.y;
           const d = Math.sqrt(dx * dx + dy * dy);
@@ -225,7 +232,7 @@ const Flow = () => {
             res.distance = d;
             res.node = n;
           }
-        }
+
         return res; //returns res for the next iteration
       },
       {
@@ -343,18 +350,17 @@ const Flow = () => {
     (_, node) => {
         if (node.data.exponentConnection != '')   //moving exponent nodes with its coefficient
         {
-            moveNode(node.data.exponentConnection, node.position.x + 50, node.position.y - 25);
+            moveNode(node.data.exponentConnection, node.position.x + EXP_POSITION_REL.x, node.position.y + EXP_POSITION_REL.y);
         }
 
         if (upperConnectionTypes.includes(node.type))
         {
-            //console.log(node.id + " " + node.data.connectors.lower);
-            moveNode(node.data.connectors.upper, node.position.x - 20, node.position.y - 30);
+            moveNode(node.data.connectors.upper, node.position.x + UPPER_POSITION_REL.x, node.position.y + UPPER_POSITION_REL.y);
         }
 
         if (lowerConnectionTypes.includes(node.type))
         {
-            moveNode(node.data.connectors.lower, node.position.x - 20, node.position.y + 50);
+            moveNode(node.data.connectors.lower, node.position.x + LOWER_POSITION_REL.x, node.position.y + LOWER_POSITION_REL.y);
         }
          
 
@@ -384,7 +390,6 @@ const Flow = () => {
   const onNodeDragStop = useCallback(
 
       (_, node) => {
-          console.log(node.data.leftNode);
       const closeEdge = getClosestEdge(node); // finds closest edge
  
       setEdges((es) => {
@@ -576,7 +581,7 @@ const Flow = () => {
       
       if (upperConnectionTypes.includes(newNode.type))
       {
-          const connectorPosition = {x: newNode.position.x-20, y:newNode.position.y-30}
+          const connectorPosition = {x: newNode.position.x + UPPER_POSITION_REL.x, y:newNode.position.y + UPPER_POSITION_REL.y}
 
           const newConnector = 
           {
@@ -595,7 +600,7 @@ const Flow = () => {
       }
 
       if (lowerConnectionTypes.includes(newNode.type)) {
-          const connectorPosition = { x: newNode.position.x - 20, y: newNode.position.y + 50 }
+          const connectorPosition = { x: newNode.position.x + LOWER_POSITION_REL.x, y: newNode.position.y + LOWER_POSITION_REL.y }
 
           const newConnector =
           {
