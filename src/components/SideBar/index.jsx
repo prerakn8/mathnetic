@@ -19,13 +19,14 @@ export default () => {
      
 
   // Yes, I probably should have used a for loop. Shut up. 
+  //     "I"
 
   // Drag and drop nodes, nodes in sidebar that are converted to actual nodes in app.jsx
   return (
     <aside className="sidebar">
       <div className="description">You can drag these nodes to the pane on the right.</div>
         <div className="dndnode" onDragStart={(event) => onDragStart(event, 'numeric', '{\\pi}')} draggable>
-          <InlineMath>\pi</InlineMath>
+           <InlineMath>\pi</InlineMath>
         </div>
         <div className="dndnode" onDragStart={(event) => onDragStart(event, 'numeric', 'e')} draggable>
           <InlineMath>e</InlineMath>
