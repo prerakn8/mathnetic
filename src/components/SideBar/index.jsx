@@ -1,10 +1,12 @@
 import React from 'react';
-// import { useDnD } from '../DnDContext';
+//import { useDnD } from '../DnDContext';
 import { useEffect, useRef } from 'react';
 import { useType } from '../context/TypeContext';
 import { useLatexEq } from '../context/LatexEqContext';
 import 'katex/dist/katex.min.css'
 import { InlineMath } from 'react-katex';
+
+
 
 export default () => {
   const [_, setType] = useType();

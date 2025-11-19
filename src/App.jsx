@@ -683,8 +683,8 @@ export default function App() {
       <ReactFlowProvider>                                             
         <TypeProvider>
           <LatexEqProvider>
-            <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
-            <Flow />
+            <DndProvider backend={TouchBackend} options={{ enableTouchEvents: true}}>
+                <Flow />
             </DndProvider>
           </LatexEqProvider>
         </TypeProvider>
