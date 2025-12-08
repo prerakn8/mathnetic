@@ -1,0 +1,9 @@
+.drop-handler {
+    width: 60vw;
+    height: 500px;
+    position: absolute;
+    top: 5px;
+    left: 15vw;
+    color: green;
+    visibility: visible;
+}

@@ -1,5 +1,18 @@
 // "You are not expected to understand this"
 
+// WE love mathnetic
+
+
+console.log("         ________     _________          __________      ______________     ______     _______       ________     _____     ___________   ______________     ______________       ____________");
+console.log("        /        |   /        |         /   ___    |    /             /    /     /    /      /      /        |   /    /    /   _______/  /             /    /             /      /           /");
+console.log("       /         |  /   /|    |        /   /   |   |   /____     ____/    /     /____/      /      /         |  /    /    /   /______   /____     ____/    /____     ____/      /    _______/");
+console.log("      /     /|   | /   / |    |       /   /____|   |       /    /        /                 /      /     /|   | /    /    /    ______/       /    /             /    /          /    /");
+console.log("     /     / |   |/   /  |    |      /    _____    |      /    /        /      _____      /      /     / |   |/    /    /    /_____        /    /         ____/    /____      /    /______");
+console.log("    /     /  |       /   |    |     /    /     |   |     /    /        /      /    /     /      /     /  |        /    /          /       /    /         /             /     /           /");
+console.log("   /_____/   |______/    |____|    /____/      |___|    /____/        /___ __/    /_____/      /_____/   |_______/    /__________/       /____/         /_____________/     /___________/");
+
+
+
 // Third-Party Imports
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import {
@@ -29,6 +42,7 @@ import { useDrop } from 'react-dnd';
 import Sidebar from './components/SideBar';
 import OutputPane from './components/OutputPane';
 import ContextMenu from './components/ContextMenu';
+import DropHandler from './components/DropHandler';
 
 import { TypeProvider, useType } from './components/context/TypeContext';
 import { LatexEqProvider, useLatexEq } from './components/context/LatexEqContext';
@@ -663,6 +677,7 @@ const Flow = () => {
           fitView
           className="reactflow-container"
         >
+          <DropHandler/>
           <Panel position="top-center">Drag Blocks to Start Making Math!</Panel>
           <MiniMap ariaLabel="Mathnetic Mini Map" pannable zoomable/>
           <Controls />
@@ -683,7 +698,7 @@ export default function App() {
       <ReactFlowProvider>                                             
         <TypeProvider>
           <LatexEqProvider>
-            <DndProvider backend={TouchBackend} options={{ enableTouchEvents: true}}>
+            <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true}}>
                 <Flow />
             </DndProvider>
           </LatexEqProvider>
