@@ -4,10 +4,7 @@ import { useEffect, useRef } from 'react';
 import 'katex/dist/katex.min.css'
 import { InlineMath } from 'react-katex';
 
-//create new sidebar
-//get the node being dragged & its type
-//run it through this
-//pray
+
 export default function DndNode(props) {
 
     //no idea if this is gonna work when the sidebar works again
