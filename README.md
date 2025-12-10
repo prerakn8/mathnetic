@@ -4,6 +4,8 @@
 
 Mathnetic is an assistive learning tool designed to help a student with cerebral palsy in their math-related endeavours. Mathnetic is designed to be a block-based editor, allowing mathematical symbols and text to be dragged to a primary workspace and be *snapped* together, in a very similar fashion to the popular block-based coding editor, [Scratch](https://scratch.mit.edu/).  
 
+This is the main branch for Mathnetic. This app was originally designed to help a single student with cerebral palsy, however it has evolved to much more than that. This branch of Mathnetic is being developed as an app to assist students taking a Life Skills class who struggle with motor control. As such, this branch will be made with touchscreen, a forgiving UI, and easy to use nodes on IPad or touchscreen laptops. Chromebook support will be tested.
+
 Made with Love by Team Sming!!!!!!!!!
 
 Founded by Lord Sming's Class of 2025.
