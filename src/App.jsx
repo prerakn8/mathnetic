@@ -72,10 +72,14 @@ const nodeTypes = {
 const upperConnectionTypes = ['test', 'fraction'];      // Keep track of which types need upper and lower connections
 const lowerConnectionTypes = ['test', 'fraction'];
 
-const source1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test','connector', 'fraction', 'start'];
-const target1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test', 'fraction'];
-const source2Types = ['numeric', 'latex', 'arithmetic', 'variable'];
-const target2Types = ['numeric', 'latex', 'arithmetic', 'variable'];
+const source1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test', 'connector', 'fraction', 'start'];  //a list of node types that can connect to other nodes [X]->-[ ]
+const target1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test', 'fraction']; //a list of nodes that can be connected to [ ]->-[X]
+const source2Types = ['numeric', 'latex', 'arithmetic', 'variable'];  //a list of nodes that can connect to other nodes vertically  [X]
+                                                                                                                                 //  |
+                                                                                                                                 // [ ]
+const target2Types = ['numeric', 'latex', 'arithmetic', 'variable'];  //a list of nodes that can be connected to other nodes vertically     [ ]
+                                                                                                                                         //  |
+                                                                                                                                         // [X]
 
 // Variables to Track How Nodes Are Arranged
 let groupNum = 0;
@@ -89,7 +93,7 @@ const getId = () => `dndnode_${id++}`;
 // Proximity Connection Variables
 const MIN_DISTANCE = 200;
 
-// connector node distances
+// constants to represent the position offsets of nodes that are tied to a parent node
 const LOWER_POSITION_REL = { x: -20, y: 50 };
 const UPPER_POSITION_REL = { x: -20, y: -30 };
 const EXP_POSITION_REL = {x: 50, y: -25}
@@ -136,7 +140,10 @@ const Flow = () => {
   // Close the context menu if it's open whenever the window is clicked.
     const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
 
+    //this onNodeClick function handles custom click functionality for nodes (exponentnode)
     const onNodeClick = useCallback((event, node) => {
+
+        //checks if you click an exponentnode and then you click a numeric or variable node to snap the exponentnode to the other node
         if (lastClicked.type == 'exponent' && (node.type == "numeric" || node.type == "variable")) {    //  changing/setting exponent node location and data
 
             setNodes((nds) =>   //this basically runs through every node and sets its exponentConnection to an empty string except for the one that just got connected
@@ -149,13 +156,14 @@ const Flow = () => {
                 })
             );
 
+            //  changing/setting exponent node location and data (lastClicked is the exponentnode, node is the most recently clicked node)
             lastClicked.position.x = node.position.x + 50;
             lastClicked.position.y = node.position.y - 25;
             node.data.exponentConnection = lastClicked.id;
             
         }
 
-        lastClicked = node;
+        lastClicked = node;     //sets the lastClicked node to the actual last clicked node
 
     }, []);
 
@@ -164,20 +172,20 @@ const Flow = () => {
         deleted.forEach((nd) => {                               //for each node(nd)
             if (nd.type == 'connector')                         // Skips if the node is a connector (this would cause an error)
                 return;
-            if (nd.data.connectors.upper != '')                 // Deletes connectors to a node
+            if (nd.data.connectors.upper != '')                 // removes connection data from node
                 deleteElements({ nodes: [{ id: nd.data.connectors.upper }] });
             if (nd.data.connectors.lower != '')
                 deleteElements({ nodes: [{ id: nd.data.connectors.lower }] });
 
 
-            setNodes((nds) =>   
+            setNodes((nds) =>  // Removes nodes in deleted from the nodes array and any connectors attached to those nodes
                 nds.filter((node) => {
                     return !(node === nd || (node.type == 'connector' && node.data.origin == nd.id));
                 })
             );
         });
 
-        deleted.forEach((nd) => {
+        deleted.forEach((nd) => {   // Removes connections of nodes that were previously attached to the deleted node
             if (source1Types.includes(nd.type) && nd.rightConnection != '')
                 getNode(id).leftConnection = '';
             if (source2Types.includes(nd.type) && nd.leftConnection != '')
@@ -554,7 +562,9 @@ const Flow = () => {
     [getClosestEdge],
   );
 
-  // DnD Implementation 
+    //The rest of this component is the system to create nodes using the drag and drop system.
+    //(DND implementation)
+
   const reactFlowWrapper = useRef(null);
   const { screenToFlowPosition } = useReactFlow();
   const [type] = useType();                             // Context that gives type of currently dragged node
