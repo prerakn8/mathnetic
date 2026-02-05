@@ -2,11 +2,14 @@
 
 ## About
 
+Mathnetic_Carter is a branch of Mathnetic. This branch is designed for students who have the motor skills for using a keyboard and touchpad rather than touchscreen. The main Mathnetic branch will have touchscreen support and will be used as a more generalist program used in classes such as Life Skills.
+
 Mathnetic is an assistive learning tool designed to help a student with cerebral palsy in their math-related endeavours. Mathnetic is designed to be a block-based editor, allowing mathematical symbols and text to be dragged to a primary workspace and be *snapped* together, in a very similar fashion to the popular block-based coding editor, [Scratch](https://scratch.mit.edu/).  
 
 Made with Love by Team Sming!!!!!!!!!
 
 Founded by Lord Sming's Class of 2025.
+Mathnetic's legacy carried on by Lord Sming's Class of 2026.
 
 ## Requirements
 
