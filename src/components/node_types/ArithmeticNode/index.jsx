@@ -4,6 +4,23 @@ import CustomHandle from '../../CustomHandle';
 import 'katex/dist/katex.min.css'
 import { InlineMath } from 'react-katex';
 
+//some nodes dont have all, or any, targets/sources (see outputnode or exponentnode)
+// target1 is the left connection
+// target2 is the top connection
+// source1 is the right connection
+// source2 is the bottom connection
+//    |_____
+/*          |
+            V
+         ___
+        |__ \   3
+           \ \
+           /  \
+          / /\ \
+         / /  \ \.-.
+        /_/    \_.-'
+*/
+
 function ArithmeticNode(props) {
 
   return (

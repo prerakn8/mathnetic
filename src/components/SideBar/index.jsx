@@ -1,3 +1,13 @@
+//note: this sidebar works very differently from the one in the main branch
+
+//to change the size of the nodes in sidebar, go to src->components->context->index.css
+
+//index.css:
+//100vh = 100% of the viewport height
+//100vw = 100% of the viewport width
+//100px = 100 pixels (dont use this, use vh or vw)
+//overflow: scroll (changes sidebar to be able to be scrolled)
+
 import React from 'react';
 // import { useDnD } from '../DnDContext';
 import { useEffect, useRef } from 'react';
@@ -21,7 +31,15 @@ export default () => {
   // Yes, I probably should have used a for loop. Shut up. 
   //     "I"
 
+  //im so sorry
+
   // Drag and drop nodes, nodes in sidebar that are converted to actual nodes in app.jsx
+
+  //classname should always be dndnode
+  //onDragStart(event, 'node type', 'symbol inside the node')
+  //              ^         ^                       ^
+  //       dont touch   numeric,exponent,etc   can use latex symbols (notation is '{\\name_of_symbol}')
+
   return (
     <aside className="sidebar">
       <div className="description">You can drag these nodes to the pane on the right.</div>

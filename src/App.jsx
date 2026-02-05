@@ -33,15 +33,15 @@ import ContextMenu from './components/ContextMenu';
 import { TypeProvider, useType } from './components/context/TypeContext';
 import { LatexEqProvider, useLatexEq } from './components/context/LatexEqContext';
 
-import NumericNode from './components/node_types/NumericNode';      // All node types
-import LaTeXNode from './components/node_types/LaTeXNode';
-import ArithmeticNode from './components/node_types/ArithmeticNode';
-import VariableNode from './components/node_types/VariableNode';
-import NewNode from './components/node_types/NewNode';
-import VerticalConnector from './components/node_types/VerticalConnector';
-import ExponentNode from './components/node_types/ExponentNode';
-import FractionNode from './components/node_types/FractionNode';
-import StartNode from './components/node_types/StartNode';
+import NumericNode from './components/node_types/NumericNode';      // nodes for integer numbers
+import LaTeXNode from './components/node_types/LaTeXNode';                  //node for complex math symbols, ex fractions (https://latex.js.org/usage.html#library)
+import ArithmeticNode from './components/node_types/ArithmeticNode';        //nodes for math operators (+ - * /)
+import VariableNode from './components/node_types/VariableNode';         //nodes for letter variables
+import NewNode from './components/node_types/NewNode';              //a node we (co2026) used for testing nodes that create other nodes (ex. FractionNode). has no real purpose now
+import VerticalConnector from './components/node_types/VerticalConnector';      //connector node used and created by fractionnode
+import ExponentNode from './components/node_types/ExponentNode';                //exponentnode can be clicked and snapped onto any other node
+import FractionNode from './components/node_types/FractionNode';                //fractionnode creates two verticalconnector nodes. one above and one below it.
+import StartNode from './components/node_types/StartNode';                      //signals to the computer that it should send output data starting with the node that it connects to
 
 const nodeTypes = {
   numeric: NumericNode,
@@ -58,10 +58,15 @@ const nodeTypes = {
 const upperConnectionTypes = ['test', 'fraction'];      // Keep track of which types need upper and lower connections
 const lowerConnectionTypes = ['test', 'fraction'];
 
-const source1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test','connector', 'fraction', 'start'];
-const target1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test', 'fraction'];
-const source2Types = ['numeric', 'latex', 'arithmetic', 'variable'];
-const target2Types = ['numeric', 'latex', 'arithmetic', 'variable'];
+const source1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test','connector', 'fraction', 'start'];   //a list of node types that can connect to other nodes [X]->-[ ]
+const target1Types = ['numeric', 'latex', 'arithmetic', 'variable', 'test', 'fraction'];                        //a list of nodes that can be connected to [ ]->-[X]
+const source2Types = ['numeric', 'latex', 'arithmetic', 'variable'];        //a list of nodes that can connect to other nodes vertically  [X]
+                                                                                                                                       //  |
+                                                                                                                                       // [ ]
+
+const target2Types = ['numeric', 'latex', 'arithmetic', 'variable'];//a list of nodes that can be connected to other nodes vertically     [ ]
+                                                                                                                                       //  |
+                                                                                                                                       // [X]
 
 // Variables to Track How Nodes Are Arranged
 let groupNum = 0;
@@ -75,10 +80,11 @@ const getId = () => `dndnode_${id++}`;
 // Proximity Connection Variables
 const MIN_DISTANCE = 200;
 
-// connector node distances
+// Constants to represent the position offsets of nodes that are tied to a parent node
 const LOWER_POSITION_REL = { x: -20, y: 50 };
 const UPPER_POSITION_REL = { x: -20, y: -30 };
-const EXP_POSITION_REL = {x: 50, y: -25}
+const EXP_POSITION_REL = { x: 50, y: -25 }
+
 const Flow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -99,6 +105,7 @@ const Flow = () => {
         })
     );
   };
+
   const onNodeContextMenu = useCallback(
     (event, node) => {
       // Prevent native context menu from showing
@@ -120,11 +127,16 @@ const Flow = () => {
   );
  
   // Close the context menu if it's open whenever the window is clicked.
-    const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
 
+  const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
+
+
+    //this onNodeClick function handles custom click functionality for nodes (exponentnode)
     const onNodeClick = useCallback((event, node) => {
-        if (lastClicked.type == 'exponent' && (node.type == "numeric" || node.type == "variable")) {    //  changing/setting exponent node location and data
-
+                    //checks if you click an exponentnode and then you click a numeric or variable node to snap the exponentnode to the other node
+        if (lastClicked.type == 'exponent' && (node.type == "numeric" || node.type == "variable")) { 
+            
+          
             setNodes((nds) =>   //this basically runs through every node and sets its exponentConnection to an empty string except for the one that just got connected
                                     //(this is really weird so dont touch)
                 nds.map((node) => {
@@ -135,35 +147,36 @@ const Flow = () => {
                 })
             );
 
+            //  changing/setting exponent node location and data (lastClicked is the exponentnode, node is the most recently clicked node)
             lastClicked.position.x = node.position.x + 50;
             lastClicked.position.y = node.position.y - 25;
             node.data.exponentConnection = lastClicked.id;
             
         }
 
-        lastClicked = node;
+        lastClicked = node; //sets the lastClicked node to the actual last clicked node
 
     }, []);
 
   // Handles deleting an edge by connecting the incomers and outgoers and deleting edges to the nodes
     const onNodesDelete = useCallback((deleted) => {
-        deleted.forEach((nd) => {                               //for each node(nd)
+        deleted.forEach((nd) => {                               // Anything but a for loop
             if (nd.type == 'connector')                         // Skips if the node is a connector (this would cause an error)
                 return;
-            if (nd.data.connectors.upper != '')                 // Deletes connectors to a node
+            if (nd.data.connectors.upper != '')                 // Removes connection data from node
                 deleteElements({ nodes: [{ id: nd.data.connectors.upper }] });
             if (nd.data.connectors.lower != '')
                 deleteElements({ nodes: [{ id: nd.data.connectors.lower }] });
 
 
-            setNodes((nds) =>   
+            setNodes((nds) =>                                   // Removes nodes in deleted from the nodes array and any connectors attached to those nodes
                 nds.filter((node) => {
                     return !(node === nd || (node.type == 'connector' && node.data.origin == nd.id));
                 })
             );
         });
 
-        deleted.forEach((nd) => {
+        deleted.forEach((nd) => {                               // Removes connections of nodes that were previously attached to the deleted node
             if (source1Types.includes(nd.type) && nd.rightConnection != '')
                 getNode(id).leftConnection = '';
             if (source2Types.includes(nd.type) && nd.leftConnection != '')
@@ -207,7 +220,7 @@ const Flow = () => {
   const store = useStoreApi();
   const { getInternalNode } = useReactFlow();
  
-  // Proximity Connect
+  // Proximity Connect (this needs fixed)
   const getClosestEdge = useCallback((node) => {
 
     const { nodeLookup } = store.getState();
@@ -540,10 +553,10 @@ const Flow = () => {
     [getClosestEdge],
   );
 
-  // DnD Implementation 
+  // The rest of this component is the system to create nodes using the drag and drop system. A lot of this will need to be overhauled when we switch from HTML drag and drop to React DnD. 
   const reactFlowWrapper = useRef(null);
   const { screenToFlowPosition } = useReactFlow();
-  const [type] = useType();                             // Context that gives type of currently dragged node
+  const [type] = useType();                             // Context that gives type of the node currently being dragged
   const [latexEq] = useLatexEq();                       // Context that gives LaTeX equation of currently dragged node (Both provided by sidebar)
  
   const onDragOver = useCallback(                       // Graphic effect for when node is dragged over viewport
@@ -552,10 +565,10 @@ const Flow = () => {
       event.dataTransfer.dropEffect = 'move';
     }, []);
   
-  const onDrop = useCallback((event) => {               // When node is dropped onto the viewport
+  const onDrop = useCallback((event) => {               // Activates when a node is dropped onto the viewport
       event.preventDefault();
 
-      if (!type) {                                      // Return if type is null
+      if (!type) {                                      // End the function if type is null
         return;
       }
 
@@ -563,7 +576,7 @@ const Flow = () => {
         return;
       }
 
-      const position = screenToFlowPosition({
+      const position = screenToFlowPosition({           // Converts the monitor screen position to the position used on the react flow viewport
         x: event.clientX,
         y: event.clientY,
       });
@@ -572,19 +585,20 @@ const Flow = () => {
         id: getId(),
         type,
         position,
-        data: { value: `${latexEq}`, label: `${latexEq}`, 
-                group: groupNum, row: rowNum, col: colNum, 
-                leftNode: '', rightNode: '', upperNode: '', lowerNode: '', exponentConnection: '',
-                connectors: {upper: '', lower: ''}
+        data: { value: `${latexEq}`, label: `${latexEq}`,                                                   // Internal value and label, both in LaTeX
+                group: groupNum, row: rowNum, col: colNum,                                                  // Old system for keeping track of node connections. Will eventually be removed
+                leftNode: '', rightNode: '', upperNode: '', lowerNode: '', exponentConnection: '',          // New system for keeping track of node connections. Each one is an id for a connecrted node. Lower and upper connection will eventually be removed in favor of vertical connectors
+                connectors: {upper: '', lower: ''}                                                          // Vertical connectors for specific nodes (for example, fractions). Not used in every node
               }
       };
-      
-      if (upperConnectionTypes.includes(newNode.type))
-      {
-          const connectorPosition = {x: newNode.position.x + UPPER_POSITION_REL.x, y:newNode.position.y + UPPER_POSITION_REL.y}
 
-          const newConnector = 
-          {
+      //Creation of vertical connectors if needed
+      if (upperConnectionTypes.includes(newNode.type))                                                      // Checks array of all node types that need upper connectors (found near top of app file)                                            
+      {
+          const connectorPosition = {x: newNode.position.x + UPPER_POSITION_REL.x, y:newNode.position.y + UPPER_POSITION_REL.y}     // Position for new connector, offset from node position
+
+          const newConnector =                                                                             // Creation is similar to above. Connectors have less data since they only need one connection (right)
+          {                                                                                                // and they are undraggable and undeletable (since they follow their parent node)
               id: getId(),
               type: 'connector',
               position: connectorPosition,
@@ -595,11 +609,11 @@ const Flow = () => {
 
           };
 
-          setNodes((nds) => nds.concat(newConnector)); 
-          newNode.data.connectors.upper = newConnector.id;
+          setNodes((nds) => nds.concat(newConnector));                                                      // Setting state of nodes to include connector
+          newNode.data.connectors.upper = newConnector.id;                                                  // Establishing the new connector as the original node's upper connector
       }
 
-      if (lowerConnectionTypes.includes(newNode.type)) {
+      if (lowerConnectionTypes.includes(newNode.type)) {                                                    // Exact same thing as upper connector, just using a different reference array and a different offset
           const connectorPosition = { x: newNode.position.x + LOWER_POSITION_REL.x, y: newNode.position.y + LOWER_POSITION_REL.y }
 
           const newConnector =
@@ -621,7 +635,7 @@ const Flow = () => {
       
       groupNum += 1;
 
-      setNodes((nds) => nds.concat(newNode));   // Adds new node to nodes
+      setNodes((nds) => nds.concat(newNode));   // Setting state of nodes to include the new node
     },
     [screenToFlowPosition, type, latexEq],      // dependencies for UseCallback()
     );
@@ -637,6 +651,8 @@ const Flow = () => {
 
   
   // Final return for <flow/>
+  // Sidebar is at the top to pass contexts to the whole component. The React Flow component includes the viewport and all nodes/edges/connections. 
+  // Within the React Flow component, we pass everything we created before in as features of the component. Below the React Flow component are various other React Flow and JS features and the Output Pane
   return (
     <div className="dndflow">
       <Sidebar />
@@ -675,8 +691,8 @@ const Flow = () => {
   );
 };
 
-// Exports flow (Entire above part of app.jsx) within necessary context providers
-
+// Exports flow (Entire above part of app.jsx) within necessary providers
+// Providers exist solely to pass contexts down the the Flow component
 export default function App() {
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
@@ -692,3 +708,5 @@ export default function App() {
     </div>
   );
 };
+
+//haha i have captured sidd and am forcing him to work on mathnetic
