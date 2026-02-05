@@ -46,5 +46,4 @@ Here's a list of software, libraries, and frameworks you should be familiar with
 * React 
 * HTML5 & JSX 
 * CSS 
-* npm 
-* Figma
+* npm

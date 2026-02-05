@@ -86,20 +86,20 @@ const UPPER_POSITION_REL = { x: -20, y: -30 };
 const EXP_POSITION_REL = { x: 50, y: -25 }
 
 const Flow = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);           // Declaring states and state changers for nodes and edges. 
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [menu, setMenu] = useState(null);
+  const [menu, setMenu] = useState(null);                               // Context menu for right click (used for testing)
   const ref = useRef(null);
-  let lastClicked = useRef(null);
-  const reactFlowInstance = useReactFlow();
+  let lastClicked = useRef(null);                                       // Used to track the last node that has been clicked (for exponent node)
+  const reactFlowInstance = useReactFlow();                             // useReactFlow() gets a react flow instance or some of its functions
   const {getNode, deleteElements} = useReactFlow();
 
       
-  const moveNode = (nodeId, newX, newY) => {
-    setNodes((nds) =>
-        nds.map((node) => {
-            if (node.id === nodeId) {
-                return { ...node, position: { x: newX, y: newY } };
+  const moveNode = (nodeId, newX, newY) => {                            // Helper function to move a node. This form of state setting is common throughout the program
+    setNodes((nds) =>                                                   // Nodes should never be modified directly, you should instead use setNodes. 
+        nds.map((node) => {                                             // the map function goes through the array and fills in a new array by running the function for each node
+            if (node.id === nodeId) {                                   // In this function, the node is returned (added back the same) if it is not the node being moved, and the node that is being moved
+                return { ...node, position: { x: newX, y: newY } };     // is replaced by an identical node with a different position
             }
             return node;
         })
@@ -220,7 +220,7 @@ const Flow = () => {
   const store = useStoreApi();
   const { getInternalNode } = useReactFlow();
  
-  // Proximity Connect (this needs fixed)
+  // Proximity Connect (this needs some heavy reworking to fix bugs and minimize interference between nodes)
   const getClosestEdge = useCallback((node) => {
 
     const { nodeLookup } = store.getState();
@@ -229,7 +229,7 @@ const Flow = () => {
       const validNodes = Array.from(nodeLookup.values()).filter(n => {
           if (n.type === 'connector') {
               return n.origin === internalNode.id || n.internals.positionAbsolute.x > internalNode.internals.positionAbsolute.x;
-          }       //^^makes sure that a connector node doesnt try to connect to its linked fraction node
+          }       //^^makes sure that a connector node doesnt try to connect to its linked parent node
           return n.id !== internalNode.id;
       })
 
@@ -283,8 +283,8 @@ const Flow = () => {
       );
     };
 
-    const handleExists = (node, handleSuffix) => {
-        if (handleSuffix == "_source1")
+    const handleExists = (node, handleSuffix) => {      // Helper function to check if a node has a certain type of handle (left right upper lower).
+        if (handleSuffix == "_source1")                 // Uses arrays from near the top of the file to check if the node type should have the handle
             return source1Types.includes(node.type);
         if (handleSuffix == "_source2")
             return source2Types.includes(node.type);
