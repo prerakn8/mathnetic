@@ -7,6 +7,8 @@ import 'katex/dist/katex.min.css'
 import { InlineMath } from 'react-katex';
 import DndNode from '../SideBar/DndNode';
 
+//this obviously doesnt work properly right now
+
 export default function Sidebar() {
     return (
         <div className="sidebar" >

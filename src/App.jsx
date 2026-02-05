@@ -1,4 +1,4 @@
-// "You are not expected to understand this"
+// "You are not expected to understand this" -Charan, class of 2025
 
 // WE love mathnetic
 
@@ -47,15 +47,15 @@ import DropHandler from './components/DropHandler';
 import { TypeProvider, useType } from './components/context/TypeContext';
 import { LatexEqProvider, useLatexEq } from './components/context/LatexEqContext';
 
-import NumericNode from './components/node_types/NumericNode';      // All node types
-import LaTeXNode from './components/node_types/LaTeXNode';
-import ArithmeticNode from './components/node_types/ArithmeticNode';
-import VariableNode from './components/node_types/VariableNode';
-import NewNode from './components/node_types/NewNode';
-import VerticalConnector from './components/node_types/VerticalConnector';
-import ExponentNode from './components/node_types/ExponentNode';
-import FractionNode from './components/node_types/FractionNode';
-import StartNode from './components/node_types/StartNode';
+import NumericNode from './components/node_types/NumericNode';      // nodes for integer numbers
+import LaTeXNode from './components/node_types/LaTeXNode';                  //node for complex math symbols, ex fractions (https://latex.js.org/usage.html#library)
+import ArithmeticNode from './components/node_types/ArithmeticNode';        //nodes for math operators (+ - * /)
+import VariableNode from './components/node_types/VariableNode';        //nodes for letter variables
+import NewNode from './components/node_types/NewNode';              //a node we (co2026) used for testing nodes that create other nodes (ex. FractionNode). has no real purpose now
+import VerticalConnector from './components/node_types/VerticalConnector';      //connector node used and created by fractionnode
+import ExponentNode from './components/node_types/ExponentNode';                //exponentnode can be clicked and snapped onto any other node
+import FractionNode from './components/node_types/FractionNode';                //fractionnode creates two verticalconnector nodes. one above and one below it.
+import StartNode from './components/node_types/StartNode';                      //signals to the computer that it should send output data starting with the node that it connects to
 
 const nodeTypes = {
   numeric: NumericNode,
@@ -221,7 +221,7 @@ const Flow = () => {
   const store = useStoreApi();
   const { getInternalNode } = useReactFlow();
  
-  // Proximity Connect
+  // Proximity Connect  (needs reworked)
   const getClosestEdge = useCallback((node) => {
 
     const { nodeLookup } = store.getState();
