@@ -81,8 +81,8 @@ const getId = () => `dndnode_${id++}`;
 const MIN_DISTANCE = 200;
 
 // Constants to represent the position offsets of nodes that are tied to a parent node
-const LOWER_POSITION_REL = { x: -20, y: 50 };
-const UPPER_POSITION_REL = { x: -20, y: -30 };
+const LOWER_POSITION_REL = { x: -20, y: 100 };
+const UPPER_POSITION_REL = { x: -20, y: -80 };
 const EXP_POSITION_REL = { x: 50, y: -25 }
 
 const Flow = () => {
@@ -227,9 +227,9 @@ const Flow = () => {
     const internalNode = getInternalNode(node.id); // Node being used
 
       const validNodes = Array.from(nodeLookup.values()).filter(n => {
-          if (n.type === 'connector') {
-              return n.origin === internalNode.id || n.internals.positionAbsolute.x > internalNode.internals.positionAbsolute.x;
-          }       //^^makes sure that a connector node doesnt try to connect to its linked parent node
+          //if (n.type === 'connector') {
+          //    return n.origin === internalNode.id || n.internals.positionAbsolute.x > internalNode.internals.positionAbsolute.x;
+          //}       //^^makes sure that a connector node doesnt try to connect to its linked parent node
           return n.id !== internalNode.id;
       })
 
