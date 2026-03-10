@@ -18,7 +18,7 @@ import {
   getIncomers,
   getOutgoers,
   getConnectedEdges,
-  useNodeConnections,
+  useNodeConnections
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { DndProvider } from 'react-dnd';
@@ -133,6 +133,7 @@ const Flow = () => {
 
     //this onNodeClick function handles custom click functionality for nodes (exponentnode)
     const onNodeClick = useCallback((event, node) => {
+        console.log("Node clicked");
                     //checks if you click an exponentnode and then you click a numeric or variable node to snap the exponentnode to the other node
         if (lastClicked.type == 'exponent' && (node.type == "numeric" || node.type == "variable")) { 
             
@@ -177,14 +178,14 @@ const Flow = () => {
         });
 
         deleted.forEach((nd) => {                               // Removes connections of nodes that were previously attached to the deleted node
-            if (source1Types.includes(nd.type) && nd.rightConnection != '')
-                getNode(id).leftConnection = '';
-            if (source2Types.includes(nd.type) && nd.leftConnection != '')
-                getNode(id).rightConnection = '';
-            if (target2Types.includes(nd.type) && nd.upperConnection != '')
-                getNode(id).lowerConnection = '';
-            if (target1Types.includes(nd.type) && nd.lowerConnection != '')
-                getNode(id).upperConnection = '';
+            if (source1Types.includes(nd.type) && nd.rightNode != '')
+                getNode(id).leftNode = '';
+            if (source2Types.includes(nd.type) && nd.leftNode != '')
+                getNode(id).rightNode = '';
+            if (target2Types.includes(nd.type) && nd.upperNode != '')
+                getNode(id).lowerNode = '';
+            if (target1Types.includes(nd.type) && nd.loweNode != '')
+                getNode(id).upperNode = '';
         });
 
       setEdges(deleted.reduce((acc, node) => 
@@ -564,28 +565,29 @@ const Flow = () => {
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
     }, []);
-  
+
   const onDrop = useCallback((event) => {               // Activates when a node is dropped onto the viewport
-      event.preventDefault();
+      
+      //event.preventDefault();
 
-      if (!type) {                                      // End the function if type is null
-        return;
-      }
+      //if (!type) {                                      // End the function if type is null
+      //  return;
+      //}
 
-      if (!latexEq && type !== 'output') {              // Special case for the unused output node
-        return;
-      }
+      //if (!latexEq && type !== 'output') {              // Special case for the unused output node
+      //  return;
+      //}
 
-      const position = screenToFlowPosition({           // Converts the monitor screen position to the position used on the react flow viewport
-        x: event.clientX,
-        y: event.clientY,
-      });
+      //const position = screenToFlowPosition({           // Converts the monitor screen position to the position used on the react flow viewport
+      //  x: event.clientX,
+      //  y: event.clientY,
+      //});
 
       const newNode = {                                 // Creates new node using position and contexts                          
         id: getId(),
-        type,
-        position,
-        data: { value: `${latexEq}`, label: `${latexEq}`,                                                   // Internal value and label, both in LaTeX
+        type: event.detail.type,
+        position: {x: event.detail.position.x, y: event.detail.position.y},
+        data: { value: `${event.detail.latexEq}`, label: `${event.detail.latexEq}`,                                                   // Internal value and label, both in LaTeX
                 group: groupNum, row: rowNum, col: colNum,                                                  // Old system for keeping track of node connections. Will eventually be removed
                 leftNode: '', rightNode: '', upperNode: '', lowerNode: '', exponentConnection: '',          // New system for keeping track of node connections. Each one is an id for a connecrted node. Lower and upper connection will eventually be removed in favor of vertical connectors
                 connectors: {upper: '', lower: ''}                                                          // Vertical connectors for specific nodes (for example, fractions). Not used in every node
@@ -636,10 +638,11 @@ const Flow = () => {
       groupNum += 1;
 
       setNodes((nds) => nds.concat(newNode));   // Setting state of nodes to include the new node
-    },
+  },
     [screenToFlowPosition, type, latexEq],      // dependencies for UseCallback()
-    );
+  );
 
+  document.addEventListener("drop", onDrop);
 
   const onDragStart = (event, nodeType, nodeLatexEq) => { 
     setType(nodeType);                                     
@@ -654,16 +657,15 @@ const Flow = () => {
   // Sidebar is at the top to pass contexts to the whole component. The React Flow component includes the viewport and all nodes/edges/connections. 
   // Within the React Flow component, we pass everything we created before in as features of the component. Below the React Flow component are various other React Flow and JS features and the Output Pane
   return (
-    <div className="dndflow">
-      <Sidebar />
-      <div className="reactflow-wrapper" ref={reactFlowWrapper}>  
+      <div className="dndflow">
+       <Sidebar />
+       <div className="reactflow-wrapper" ref={reactFlowWrapper}>  
         <ReactFlow                                   
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onNodesDelete={onNodesDelete}
           onEdgesChange={onEdgesChange}
-          onNodeDrag={onNodeDrag}
           onNodeDragStop={onNodeDragStop}
           onNodeClick = {onNodeClick}
           onDrop={onDrop}
@@ -673,7 +675,7 @@ const Flow = () => {
           onPaneClick={onPaneClick}
           onNodeContextMenu={onNodeContextMenu}
           defaultEdgeOptions={defaultEdgeOptions}
-          SelectionMode={SelectionMode.Partial}
+          selectionMode={SelectionMode.Partial}
           nodeTypes={nodeTypes}
           snapToGrid
           fitView
@@ -686,7 +688,8 @@ const Flow = () => {
           {menu && <ContextMenu onClick={onPaneClick} {...menu} />}
         </ReactFlow>
       </div>
-      <OutputPane groupNum={groupNum} rowNum={rowNum} colNum={colNum}/>
+      <OutputPane groupNum={groupNum} rowNum={rowNum} colNum={colNum} />
+
     </div>
   );
 };

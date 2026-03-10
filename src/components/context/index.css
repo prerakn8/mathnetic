@@ -34,6 +34,7 @@ body {
 
 .dndflow .dndnode {
   height: 200px;
+  width: 200px;
   padding: 4px;
   border: 1px solid #1a192b;
   border-radius: 2px;
@@ -43,6 +44,7 @@ body {
   align-items: center;
   cursor: grab;
   font-size: 40px;
+  background-color: burlywood;
 }
 
 .dndflow .dndnode.input {
@@ -56,6 +58,7 @@ body {
 .dndflow .reactflow-wrapper {
   flex-grow: 1;
   height: 100%;
+  z-index: -1;
 }
 
 .dndflow .selectall {

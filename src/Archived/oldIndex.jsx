@@ -124,7 +124,6 @@ export default () => {
       <div className="dndnode" onDragStart={(event) => onDragStart(event, 'fraction', 'F')} draggable>
         <InlineMath>f</InlineMath>
       </div>
-
       <div className="dndnode" onDragStart={(event) => onDragStart(event, 'start', 'O')} draggable>
           <InlineMath>o</InlineMath>
       </div>
